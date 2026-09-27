@@ -10,7 +10,7 @@ const formatDate = (value: string) =>
 	}).format(new Date(value));
 ---
 
-<Layout title="Journal | TOKIOLAB">
+<Layout title="TOKIOLAB | ウェブとプロダクトの記録">
 	<main class="page">
 		<header class="site-intro">
 			<h1>
@@ -23,7 +23,7 @@ const formatDate = (value: string) =>
 		<ul class="post-list">
 			{posts.map((post) => (
 				<li class="post-item">
-					<article class="post">
+					<article>
 						<div>
 							<p class="post-meta">
 								{post.category && (
@@ -58,16 +58,6 @@ const formatDate = (value: string) =>
 								))}
 							</ul>
 						</div>
-						{post.eyecatch && (
-							<img
-								class="eyecatch"
-								src={post.eyecatch.url}
-								alt={post.eyecatch.alt || ''}
-								width={post.eyecatch.width}
-								height={post.eyecatch.height}
-								loading="lazy"
-							/>
-						)}
 					</article>
 				</li>
 			))}
@@ -105,12 +95,6 @@ const formatDate = (value: string) =>
 		padding: 24px 0;
 		border-bottom: 1px solid var(--color-line);
 	}
-	.post {
-		display: grid;
-		grid-template-columns: minmax(0, 1fr) 144px;
-		gap: 24px;
-		align-items: start;
-	}
 	.post-meta {
 		display: flex;
 		flex-wrap: wrap;
@@ -132,11 +116,6 @@ const formatDate = (value: string) =>
 		stroke-linecap: round;
 		stroke-linejoin: round;
 		stroke-width: 1.8;
-	}
-	.eyecatch {
-		width: 144px;
-		aspect-ratio: 16 / 9;
-		object-fit: cover;
 	}
 	.category {
 		color: var(--color-accent);
@@ -177,14 +156,5 @@ const formatDate = (value: string) =>
 	}
 	.tag-list a {
 		text-decoration: none;
-	}
-	@media (max-width: 480px) {
-		.post {
-			grid-template-columns: minmax(0, 1fr) 96px;
-			gap: 16px;
-		}
-		.eyecatch {
-			width: 96px;
-		}
 	}
 </style>
