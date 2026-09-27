@@ -5,7 +5,7 @@ export async function getStaticPaths() { const posts = await getPosts(); return 
 const post = Astro.props.post as BlogPost;
 const formatDate = (value: string) => new Intl.DateTimeFormat('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' }).format(new Date(value));
 ---
-<Layout title={`${post.title} | TOKIOLAB`} description={post.excerpt || post.title}>
+<Layout title={`${post.title} | TOKIOLAB`} description={post.excerpt || post.title} ogImage={post.eyecatch?.url || undefined}>
   <main class="page">
     <article class="article">
       <p class="back"><a href="/">← 記事一覧</a></p>
