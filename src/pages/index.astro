@@ -7,7 +7,7 @@ const formatDate = (value: string) => new Intl.DateTimeFormat('ja-JP', { year: '
 
 <Layout title="Journal | TOKIOLAB">
 	<main class="page">
-		<header class="page-header"><p>Journal</p><h1>記事一覧</h1></header>
+		<header class="site-intro"><h1>TOKIO LAB<span>.</span></h1><p>ウェブとプロダクトについて、つくりながら考えたことを記録しています。</p></header>
 		<ul class="post-list">
 			{posts.map((post) => (
 				<li class="post-item">
@@ -27,9 +27,10 @@ const formatDate = (value: string) => new Intl.DateTimeFormat('ja-JP', { year: '
 </Layout>
 
 <style>
-	.page-header { margin-bottom: 48px; }
-	.page-header p { margin: 0 0 8px; color: var(--color-accent); font-size: .75rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
-	h1 { margin: 0; font-size: clamp(1.75rem, 3vw, 2.5rem); letter-spacing: -.04em; line-height: 1.25; }
+	.site-intro { margin: 20px 0 72px; text-align: center; }
+	.site-intro h1 { margin: 0; font-size: clamp(2rem, 6vw, 3rem); letter-spacing: .04em; line-height: 1.2; }
+	.site-intro h1 span { color: var(--color-accent); }
+	.site-intro p { max-width: 360px; margin: 16px auto 0; color: var(--color-muted); font-size: .9rem; }
 	.post-list { margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--color-ink); }
 	.post-item { padding: 24px 0; border-bottom: 1px solid var(--color-line); }
 	.post { display: grid; grid-template-columns: minmax(0, 1fr) 144px; gap: 24px; align-items: start; }
