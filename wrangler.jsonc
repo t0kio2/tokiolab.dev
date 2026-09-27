@@ -1,7 +1,7 @@
 {
-  "name": "tokiolab-dev",
-  "compatibility_date": "2026-09-27",
-  "assets": {
-    "directory": "./dist"
-  }
+	"name": "tokiolab-dev",
+	"compatibility_date": "2026-09-27",
+	"assets": {
+		"directory": "./dist",
+	},
 }

@@ -1,24 +1,73 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import { getPosts } from '../lib/microcms';
+import { getContentPreview, getPosts } from '../lib/microcms';
 const posts = await getPosts();
-const formatDate = (value: string) => new Intl.DateTimeFormat('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' }).format(new Date(value));
+const formatDate = (value: string) =>
+	new Intl.DateTimeFormat('ja-JP', {
+		year: 'numeric',
+		month: 'long',
+		day: 'numeric',
+	}).format(new Date(value));
 ---
 
 <Layout title="Journal | TOKIOLAB">
 	<main class="page">
-		<header class="site-intro"><h1>TOKIO LAB<span>.</span></h1><p>ウェブとプロダクトについて、つくりながら考えたことを記録しています。</p></header>
+		<header class="site-intro">
+			<h1>
+				TOKIO LAB<span>.</span>
+			</h1>
+			<p>
+				ウェブとプロダクトについて、つくりながら考えたことを記録しています。
+			</p>
+		</header>
 		<ul class="post-list">
 			{posts.map((post) => (
 				<li class="post-item">
 					<article class="post">
 						<div>
-						<p class="post-meta">{post.category && <a class="category" href={`/categories/${post.category.id}/`}>{post.category.name}</a>}<time datetime={post.publishedAt}>{formatDate(post.publishedAt)}</time></p>
-						<h2><a href={`/blog/${post.id}/`}>{post.title}</a></h2>
-						{post.excerpt && <p class="excerpt">{post.excerpt}</p>}
-						<ul class="tag-list" aria-label="タグ">{post.tags.map((tag) => <li><a href={`/tags/${tag.id}/`}>#{tag.name}</a></li>)}</ul>
+							<p class="post-meta">
+								{post.category && (
+									<a class="category" href={`/categories/${post.category.id}/`}>
+										{post.category.name}
+									</a>
+								)}
+								<time datetime={post.publishedAt}>
+									公開 {formatDate(post.publishedAt)}
+								</time>
+								<time class="updated-at" datetime={post.updatedAt}>
+									<svg aria-hidden="true" viewBox="0 0 24 24">
+										<path d="M21 12a9 9 0 0 0-15.5-6.4L3 8" />
+										<path d="M3 2v6h6" />
+										<path d="M3 12a9 9 0 0 0 15.5 6.4L21 16" />
+										<path d="M21 22v-6h-6" />
+									</svg>
+									更新 {formatDate(post.updatedAt)}
+								</time>
+							</p>
+							<h2>
+								<a href={`/blog/${post.id}/`}>{post.title}</a>
+							</h2>
+							{getContentPreview(post.content) && (
+								<p class="description">{getContentPreview(post.content)}</p>
+							)}
+							<ul class="tag-list" aria-label="タグ">
+								{post.tags.map((tag) => (
+									<li>
+										<a href={`/tags/${tag.id}/`}>#{tag.name}</a>
+									</li>
+								))}
+							</ul>
 						</div>
-						{post.eyecatch && <img class="eyecatch" src={post.eyecatch.url} alt={post.eyecatch.alt || ''} width={post.eyecatch.width} height={post.eyecatch.height} loading="lazy" />}
+						{post.eyecatch && (
+							<img
+								class="eyecatch"
+								src={post.eyecatch.url}
+								alt={post.eyecatch.alt || ''}
+								width={post.eyecatch.width}
+								height={post.eyecatch.height}
+								loading="lazy"
+							/>
+						)}
 					</article>
 				</li>
 			))}
@@ -27,20 +76,115 @@ const formatDate = (value: string) => new Intl.DateTimeFormat('ja-JP', { year: '
 </Layout>
 
 <style>
-	.site-intro { margin: 20px 0 72px; text-align: center; }
-	.site-intro h1 { margin: 0; font-size: clamp(2rem, 6vw, 3rem); letter-spacing: .04em; line-height: 1.2; }
-	.site-intro h1 span { color: var(--color-accent); }
-	.site-intro p { max-width: 360px; margin: 16px auto 0; color: var(--color-muted); font-size: .9rem; }
-	.post-list { margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--color-ink); }
-	.post-item { padding: 24px 0; border-bottom: 1px solid var(--color-line); }
-	.post { display: grid; grid-template-columns: minmax(0, 1fr) 144px; gap: 24px; align-items: start; }
-	.post-meta { display: flex; gap: 12px; margin: 0 0 7px; color: var(--color-muted); font-size: .78rem; }
-	.eyecatch { width: 144px; aspect-ratio: 16 / 9; object-fit: cover; }
-	.category { color: var(--color-accent); font-weight: 600; }
-	h2 { margin: 0; font-size: clamp(1.1rem, 2vw, 1.35rem); font-weight: 650; letter-spacing: -.025em; line-height: 1.45; }
-	h2 a { text-decoration: none; }
-	h2 a:hover { color: var(--color-accent); }
-	.excerpt { margin: 8px 0 0; color: var(--color-muted); font-size: .9rem; }
-	.tag-list { display: flex; flex-wrap: wrap; gap: 6px 12px; margin: 12px 0 0; padding: 0; color: var(--color-muted); font-size: .78rem; list-style: none; }
-	@media (max-width: 480px) { .post { grid-template-columns: minmax(0, 1fr) 96px; gap: 16px; }.eyecatch { width: 96px; } }
+	.site-intro {
+		margin: 20px 0 72px;
+		text-align: center;
+	}
+	.site-intro h1 {
+		margin: 0;
+		font-size: clamp(2rem, 6vw, 3rem);
+		letter-spacing: 0.04em;
+		line-height: 1.2;
+	}
+	.site-intro h1 span {
+		color: var(--color-accent);
+	}
+	.site-intro p {
+		max-width: 360px;
+		margin: 16px auto 0;
+		color: var(--color-muted);
+		font-size: 0.9rem;
+	}
+	.post-list {
+		margin: 0;
+		padding: 0;
+		list-style: none;
+		border-top: 1px solid var(--color-ink);
+	}
+	.post-item {
+		padding: 24px 0;
+		border-bottom: 1px solid var(--color-line);
+	}
+	.post {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) 144px;
+		gap: 24px;
+		align-items: start;
+	}
+	.post-meta {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 4px 12px;
+		margin: 0 0 7px;
+		color: var(--color-muted);
+		font-size: 0.78rem;
+	}
+	.updated-at {
+		display: inline-flex;
+		align-items: center;
+		gap: 3px;
+	}
+	.updated-at svg {
+		width: 0.9em;
+		height: 0.9em;
+		fill: none;
+		stroke: currentColor;
+		stroke-linecap: round;
+		stroke-linejoin: round;
+		stroke-width: 1.8;
+	}
+	.eyecatch {
+		width: 144px;
+		aspect-ratio: 16 / 9;
+		object-fit: cover;
+	}
+	.category {
+		color: var(--color-accent);
+		font-weight: 600;
+		text-decoration: none;
+	}
+	h2 {
+		margin: 0;
+		font-size: clamp(1.1rem, 2vw, 1.35rem);
+		font-weight: 650;
+		letter-spacing: -0.025em;
+		line-height: 1.45;
+	}
+	h2 a {
+		text-decoration: none;
+	}
+	h2 a:hover {
+		color: var(--color-accent);
+	}
+	.description {
+		margin: 8px 0 0;
+		color: var(--color-muted);
+		font-size: 0.9rem;
+		display: -webkit-box;
+		-webkit-box-orient: vertical;
+		-webkit-line-clamp: 2;
+		overflow: hidden;
+	}
+	.tag-list {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 6px 12px;
+		margin: 12px 0 0;
+		padding: 0;
+		color: var(--color-muted);
+		font-size: 0.78rem;
+		list-style: none;
+	}
+	.tag-list a {
+		text-decoration: none;
+	}
+	@media (max-width: 480px) {
+		.post {
+			grid-template-columns: minmax(0, 1fr) 96px;
+			gap: 16px;
+		}
+		.eyecatch {
+			width: 96px;
+		}
+	}
 </style>
