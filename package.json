@@ -17,6 +17,7 @@
 		"lint": "npm run format:check && npm run lint:eslint && npm run check"
 	},
 	"dependencies": {
+		"@astrojs/sitemap": "^3.7.4",
 		"astro": "^7.3.5"
 	},
 	"allowScripts": {
