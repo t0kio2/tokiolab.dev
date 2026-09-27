@@ -1,20 +1,34 @@
 {
-  "name": "tokiolab-dev",
-  "type": "module",
-  "version": "0.0.1",
-  "engines": {
-    "node": ">=22.12.0"
-  },
-  "scripts": {
-    "dev": "astro dev",
-    "build": "astro build",
-    "preview": "astro preview",
-    "astro": "astro"
-  },
-  "dependencies": {
-    "astro": "^7.3.5"
-  },
-  "allowScripts": {
-    "esbuild": true
-  }
+	"name": "tokiolab-dev",
+	"type": "module",
+	"version": "0.0.1",
+	"engines": {
+		"node": ">=22.12.0"
+	},
+	"scripts": {
+		"dev": "astro dev",
+		"build": "astro build",
+		"preview": "astro preview",
+		"astro": "astro",
+		"format": "prettier --write .",
+		"format:check": "prettier --check .",
+		"lint:eslint": "eslint .",
+		"check": "astro check",
+		"lint": "npm run format:check && npm run lint:eslint && npm run check"
+	},
+	"dependencies": {
+		"astro": "^7.3.5"
+	},
+	"allowScripts": {
+		"esbuild": true
+	},
+	"devDependencies": {
+		"@astrojs/check": "^0.9.10",
+		"@typescript-eslint/parser": "^8.70.1",
+		"eslint": "^9.39.5",
+		"eslint-plugin-astro": "^1.7.0",
+		"prettier": "^3.9.9",
+		"prettier-plugin-astro": "^1.1.0",
+		"typescript": "^6.0.3"
+	}
 }

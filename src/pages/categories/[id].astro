@@ -4,33 +4,141 @@ import { getCategories, getPosts, type Taxonomy } from '../../lib/microcms';
 
 export async function getStaticPaths() {
 	const categories = await getCategories();
-	return Promise.all(categories.map(async (category) => ({ params: { id: category.id }, props: { category, posts: await getPosts({ categoryId: category.id }) } })));
+	return Promise.all(
+		categories.map(async (category) => ({
+			params: { id: category.id },
+			props: { category, posts: await getPosts({ categoryId: category.id }) },
+		})),
+	);
 }
 
-const { category, posts } = Astro.props as { category: Taxonomy; posts: Awaited<ReturnType<typeof getPosts>> };
-const formatDate = (value: string) => new Intl.DateTimeFormat('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' }).format(new Date(value));
+const { category, posts } = Astro.props as {
+	category: Taxonomy;
+	posts: Awaited<ReturnType<typeof getPosts>>;
+};
+const formatDate = (value: string) =>
+	new Intl.DateTimeFormat('ja-JP', {
+		year: 'numeric',
+		month: 'long',
+		day: 'numeric',
+	}).format(new Date(value));
 ---
 
-<Layout title={`${category.name} | TOKIOLAB`} description={category.description || `${category.name} に関する記事一覧`}>
+<Layout
+	title={`${category.name} | TOKIOLAB`}
+	description={category.description || `${category.name} に関する記事一覧`}
+>
 	<main class="page">
-		<p class="back"><a href="/">← 記事一覧</a></p>
-		<header class="page-header"><p>Category</p><h1>{category.name}</h1>{category.description && <p class="description">{category.description}</p>}</header>
+		<p class="back">
+			<a href="/">← 記事一覧</a>
+		</p>
+		<header class="page-header">
+			<p>Category</p>
+			<h1>{category.name}</h1>
+			{category.description && (
+				<p class="description">{category.description}</p>
+			)}
+		</header>
 		<ul class="post-list">
-			{posts.map((post) => <li class="post-item"><article><p class="post-meta"><time datetime={post.publishedAt}>{formatDate(post.publishedAt)}</time></p><h2><a href={`/blog/${post.id}/`}>{post.title}</a></h2></article></li>)}
+			{posts.map((post) => (
+				<li class="post-item">
+					<article>
+						<p class="post-meta">
+							<time datetime={post.publishedAt}>
+								公開 {formatDate(post.publishedAt)}
+							</time>
+							<time class="updated-at" datetime={post.updatedAt}>
+								<svg aria-hidden="true" viewBox="0 0 24 24">
+									<path d="M21 12a9 9 0 0 0-15.5-6.4L3 8" />
+									<path d="M3 2v6h6" />
+									<path d="M3 12a9 9 0 0 0 15.5 6.4L21 16" />
+									<path d="M21 22v-6h-6" />
+								</svg>
+								更新 {formatDate(post.updatedAt)}
+							</time>
+						</p>
+						<h2>
+							<a href={`/blog/${post.id}/`}>{post.title}</a>
+						</h2>
+					</article>
+				</li>
+			))}
 		</ul>
 	</main>
 </Layout>
 
 <style>
-	.back { margin: 0 0 40px; font-size: .82rem; }
-	.page-header { margin-bottom: 40px; }
-	.page-header > p:first-child { margin: 0 0 8px; color: var(--color-accent); font-size: .75rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
-	h1 { margin: 0; font-size: clamp(1.75rem, 3vw, 2.5rem); letter-spacing: -.04em; line-height: 1.25; }
-	.description { margin: 12px 0 0; color: var(--color-muted); }
-	.post-list { margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--color-ink); }
-	.post-item { padding: 24px 0; border-bottom: 1px solid var(--color-line); }
-	.post-meta { margin: 0 0 7px; color: var(--color-muted); font-size: .78rem; }
-	h2 { margin: 0; font-size: clamp(1.1rem, 2vw, 1.35rem); font-weight: 650; letter-spacing: -.025em; line-height: 1.45; }
-	h2 a { text-decoration: none; }
-	h2 a:hover { color: var(--color-accent); }
+	.back {
+		margin: 0 0 40px;
+		font-size: 0.82rem;
+	}
+	.back a {
+		text-decoration: none;
+	}
+	.page-header {
+		margin-bottom: 40px;
+	}
+	.page-header > p:first-child {
+		margin: 0 0 8px;
+		color: var(--color-accent);
+		font-size: 0.75rem;
+		font-weight: 700;
+		letter-spacing: 0.1em;
+		text-transform: uppercase;
+	}
+	h1 {
+		margin: 0;
+		font-size: clamp(1.75rem, 3vw, 2.5rem);
+		letter-spacing: -0.04em;
+		line-height: 1.25;
+	}
+	.description {
+		margin: 12px 0 0;
+		color: var(--color-muted);
+	}
+	.post-list {
+		margin: 0;
+		padding: 0;
+		list-style: none;
+		border-top: 1px solid var(--color-ink);
+	}
+	.post-item {
+		padding: 24px 0;
+		border-bottom: 1px solid var(--color-line);
+	}
+	.post-meta {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 4px 12px;
+		margin: 0 0 7px;
+		color: var(--color-muted);
+		font-size: 0.78rem;
+	}
+	.updated-at {
+		display: inline-flex;
+		align-items: center;
+		gap: 3px;
+	}
+	.updated-at svg {
+		width: 0.9em;
+		height: 0.9em;
+		fill: none;
+		stroke: currentColor;
+		stroke-linecap: round;
+		stroke-linejoin: round;
+		stroke-width: 1.8;
+	}
+	h2 {
+		margin: 0;
+		font-size: clamp(1.1rem, 2vw, 1.35rem);
+		font-weight: 650;
+		letter-spacing: -0.025em;
+		line-height: 1.45;
+	}
+	h2 a {
+		text-decoration: none;
+	}
+	h2 a:hover {
+		color: var(--color-accent);
+	}
 </style>
