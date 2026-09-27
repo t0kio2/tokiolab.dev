@@ -1,23 +1,42 @@
+---
+interface Props { title?: string; description?: string; ogImage?: string; }
+const { title = 'TOKIOLAB — Notes on the web', description = 'TOKIOLAB の技術ノートとプロジェクトの記録。', ogImage = '/og-default.png' } = Astro.props;
+const site = Astro.site || new URL('https://tokiolab.dev');
+const canonicalUrl = new URL(Astro.url.pathname, site).href;
+const ogImageUrl = new URL(ogImage, site).href;
+---
 <!doctype html>
-<html lang="en">
+<html lang="ja">
 	<head>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width" />
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
+		<meta name="description" content={description} />
+		<link rel="canonical" href={canonicalUrl} />
+		<meta property="og:type" content="website" />
+		<meta property="og:site_name" content="TOKIOLAB" />
+		<meta property="og:title" content={title} />
+		<meta property="og:description" content={description} />
+		<meta property="og:url" content={canonicalUrl} />
+		<meta property="og:image" content={ogImageUrl} />
+		<meta name="twitter:card" content="summary_large_image" />
 		<meta name="generator" content={Astro.generator} />
-		<title>Astro Basics</title>
+		<title>{title}</title>
 	</head>
 	<body>
+		<header class="site-header"><div class="header-content"><a href="/">TOKIOLAB</a></div></header>
 		<slot />
 	</body>
 </html>
 
 <style>
-	html,
-	body {
-		margin: 0;
-		width: 100%;
-		height: 100%;
-	}
+	:global(:root) { --color-ink: #151515; --color-muted: #707070; --color-line: #e5e3df; --color-paper: #fbfaf8; --color-accent: #f04a24; --font-sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif; }
+	:global(*) { box-sizing: border-box; }
+	body { margin: 0; background: var(--color-paper); color: var(--color-ink); font-family: var(--font-sans); font-size: 16px; line-height: 1.7; }
+	:global(a) { color: inherit; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+	.site-header { border-bottom: 1px solid var(--color-line); font-size: .8rem; font-weight: 700; letter-spacing: .12em; }
+	.header-content { width: min(680px, calc(100% - 40px)); margin: 0 auto; padding: 22px 0; }
+	.site-header a { text-decoration: none; }
+	.site-header a::after { color: var(--color-accent); content: '.'; }
+	:global(.page) { width: min(680px, calc(100% - 40px)); margin: 0 auto; padding: 28px 0 clamp(48px, 8vw, 96px); }
 </style>

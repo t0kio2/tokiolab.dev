@@ -1,0 +1,35 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { getPosts, type BlogPost } from '../../lib/microcms';
+export async function getStaticPaths() { const posts = await getPosts(); return posts.map((post) => ({ params: { id: post.id }, props: { post } })); }
+const post = Astro.props.post as BlogPost;
+const formatDate = (value: string) => new Intl.DateTimeFormat('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' }).format(new Date(value));
+---
+<Layout title={`${post.title} | TOKIOLAB`} description={post.excerpt || post.title} ogImage={post.eyecatch?.url || undefined}>
+  <main class="page">
+    <article class="article">
+      <p class="back"><a href="/">← 記事一覧</a></p>
+      <p class="meta">{post.category && <a class="category" href={`/categories/${post.category.id}/`}>{post.category.name}</a>}<time datetime={post.publishedAt}>{formatDate(post.publishedAt)}</time></p>
+      <h1>{post.title}</h1>
+      <ul class="tag-list" aria-label="タグ">{post.tags.map((tag) => <li><a href={`/tags/${tag.id}/`}>#{tag.name}</a></li>)}</ul>
+      {post.eyecatch && <img src={post.eyecatch.url} alt={post.eyecatch.alt || ''} width={post.eyecatch.width} height={post.eyecatch.height} />}
+      <div class="content" set:html={post.content} />
+    </article>
+  </main>
+</Layout>
+
+<style>
+	.article { max-width: 720px; }
+	.back { margin: 0 0 48px; font-size: .82rem; }
+	.meta { display: flex; gap: 12px; margin: 0 0 12px; color: var(--color-muted); font-size: .78rem; }
+	.category { color: var(--color-accent); font-weight: 600; }
+	h1 { margin: 0; font-size: clamp(1.8rem, 4vw, 3rem); letter-spacing: -.05em; line-height: 1.25; }
+	.tag-list { display: flex; flex-wrap: wrap; gap: 6px 12px; margin: 18px 0 36px; padding: 0; color: var(--color-muted); font-size: .78rem; list-style: none; }
+	img { display: block; max-width: 100%; height: auto; margin: 0 0 40px; }
+	.content { font-size: 1rem; }
+	.content :global(h2) { margin: 48px 0 14px; font-size: 1.35rem; letter-spacing: -.025em; line-height: 1.4; }
+	.content :global(h3) { margin-top: 36px; font-size: 1.1rem; }
+	.content :global(a) { color: var(--color-accent); }
+	.content :global(img) { max-width: 100%; height: auto; }
+	.content :global(pre) { overflow-x: auto; padding: 16px; background: var(--color-line); font-size: .85rem; }
+</style>
