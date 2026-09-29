@@ -13,6 +13,7 @@ const site = Astro.site || new URL('https://tokiolab.dev');
 const canonicalUrl = new URL(Astro.url.pathname, site).href;
 const ogImageUrl = new URL(ogImage, site).href;
 const currentYear = new Date().getFullYear();
+const gaMeasurementId = import.meta.env.PUBLIC_GA_MEASUREMENT_ID;
 ---
 
 <!doctype html>
@@ -34,6 +35,24 @@ const currentYear = new Date().getFullYear();
 		<meta property="og:image" content={ogImageUrl} />
 		<meta name="twitter:card" content="summary_large_image" />
 		<title>{title}</title>
+		{
+			gaMeasurementId && (
+				<>
+					<script
+						async
+						src={`https://www.googletagmanager.com/gtag/js?id=${gaMeasurementId}`}
+					></script>
+					<script is:inline define:vars={{ gaMeasurementId }}>
+						window.dataLayer = window.dataLayer || [];
+						function gtag() {
+							window.dataLayer.push(arguments);
+						}
+						gtag('js', new Date());
+						gtag('config', gaMeasurementId);
+					</script>
+				</>
+			)
+		}
 	</head>
 	<body>
 		<header class="site-header">
