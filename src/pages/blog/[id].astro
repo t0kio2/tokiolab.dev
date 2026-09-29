@@ -147,10 +147,79 @@ const formatDate = (value: string) =>
 		max-width: 100%;
 		height: auto;
 	}
+	.content :global(code) {
+		padding: 0.15em 0.4em;
+		border-radius: 4px;
+		background: var(--color-line);
+		font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+		font-size: 0.85em;
+	}
 	.content :global(pre) {
 		overflow-x: auto;
-		padding: 16px;
-		background: var(--color-line);
+		margin: 28px 0;
+		padding: 18px 20px;
+		border-radius: 8px;
+		background: var(--color-ink);
+		color: var(--color-paper);
 		font-size: 0.85rem;
+		line-height: 1.7;
+	}
+	.content :global(pre code) {
+		padding: 0;
+		border-radius: 0;
+		background: transparent;
+		color: inherit;
+		font-size: inherit;
+	}
+	.content :global([data-filename]) {
+		margin: 28px 0;
+	}
+	.content :global([data-filename]::before) {
+		display: block;
+		padding: 7px 12px;
+		border-radius: 8px 8px 0 0;
+		background: var(--color-line);
+		color: var(--color-muted);
+		content: attr(data-filename);
+		font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+		font-size: 0.75rem;
+	}
+	.content :global([data-filename] pre) {
+		margin-top: 0;
+		border-radius: 0 0 8px 8px;
+	}
+	.content :global(table) {
+		display: table;
+		width: 100%;
+		max-width: 100%;
+		margin: 28px 0;
+		border: 1px solid #c7c3bc;
+		border-collapse: collapse;
+		background: #fff;
+		font-size: 0.9rem;
+	}
+	.content :global(th),
+	.content :global(td) {
+		min-width: 120px;
+		padding: 10px 12px;
+		text-align: left;
+		vertical-align: top;
+	}
+	.content :global(tr > :not(:last-child)) {
+		border-right: 1px solid #d7d3cb;
+	}
+	.content :global(tr:not(:last-child) > *) {
+		border-bottom: 1px solid #d7d3cb;
+	}
+	.content :global(th) {
+		background: #e8e4dc;
+		font-weight: 650;
+	}
+	.content :global(tbody tr:nth-child(odd) td) {
+		background: #fbfaf8;
+	}
+	.content :global(th p),
+	.content :global(td p) {
+		margin: 0;
 	}
 </style>
