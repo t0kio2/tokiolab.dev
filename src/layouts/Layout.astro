@@ -3,17 +3,37 @@ interface Props {
 	title?: string;
 	description?: string;
 	ogImage?: string;
+	structuredData?: Record<string, unknown>;
 }
 const {
 	title = 'TOKIOLAB — Notes on the web',
 	description = 'TOKIOLAB の技術ノートとプロジェクトの記録。',
 	ogImage = '/og-default.png',
+	structuredData: pageStructuredData,
 } = Astro.props;
 const site = Astro.site || new URL('https://tokiolab.dev');
 const canonicalUrl = new URL(Astro.url.pathname, site).href;
 const ogImageUrl = new URL(ogImage, site).href;
 const currentYear = new Date().getFullYear();
 const gaMeasurementId = import.meta.env.PUBLIC_GA_MEASUREMENT_ID;
+const structuredData = {
+	'@context': 'https://schema.org',
+	'@graph': [
+		{
+			'@type': 'WebSite',
+			'@id': `${site.href}#website`,
+			url: site.href,
+			name: 'TOKIOLAB',
+			description: 'TOKIOLAB の技術ノートとプロジェクトの記録。',
+			inLanguage: 'ja-JP',
+		},
+		...(pageStructuredData ? [pageStructuredData] : []),
+	],
+};
+const structuredDataJson = JSON.stringify(structuredData).replace(
+	/</g,
+	'\\u003c',
+);
 ---
 
 <!doctype html>
@@ -27,6 +47,7 @@ const gaMeasurementId = import.meta.env.PUBLIC_GA_MEASUREMENT_ID;
 		<link rel="sitemap" href="/sitemap-index.xml" />
 		<meta name="description" content={description} />
 		<link rel="canonical" href={canonicalUrl} />
+		<script type="application/ld+json" set:html={structuredDataJson}></script>
 		<meta property="og:type" content="website" />
 		<meta property="og:site_name" content="TOKIOLAB" />
 		<meta property="og:title" content={title} />
@@ -35,24 +56,22 @@ const gaMeasurementId = import.meta.env.PUBLIC_GA_MEASUREMENT_ID;
 		<meta property="og:image" content={ogImageUrl} />
 		<meta name="twitter:card" content="summary_large_image" />
 		<title>{title}</title>
-		{
-			gaMeasurementId && (
-				<>
-					<script
-						async
-						src={`https://www.googletagmanager.com/gtag/js?id=${gaMeasurementId}`}
-					></script>
-					<script is:inline define:vars={{ gaMeasurementId }}>
-						window.dataLayer = window.dataLayer || [];
-						function gtag() {
-							window.dataLayer.push(arguments);
-						}
-						gtag('js', new Date());
-						gtag('config', gaMeasurementId);
-					</script>
-				</>
-			)
-		}
+		{gaMeasurementId && (
+			<>
+				<script
+					async
+					src={`https://www.googletagmanager.com/gtag/js?id=${gaMeasurementId}`}
+				></script>
+				<script is:inline define:vars={{ gaMeasurementId }}>
+					window.dataLayer = window.dataLayer || [];
+					function gtag() {
+						window.dataLayer.push(arguments);
+					}
+					gtag('js', new Date());
+					gtag('config', gaMeasurementId);
+				</script>
+			</>
+		)}
 	</head>
 	<body>
 		<header class="site-header">

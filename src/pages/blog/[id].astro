@@ -12,12 +12,30 @@ const formatDate = (value: string) =>
 		month: 'long',
 		day: 'numeric',
 	}).format(new Date(value));
+const site = Astro.site || new URL('https://tokiolab.dev');
+const canonicalUrl = new URL(Astro.url.pathname, site).href;
+const structuredData = {
+	'@type': 'BlogPosting',
+	'@id': `${canonicalUrl}#article`,
+	headline: post.title,
+	description: post.excerpt || post.title,
+	datePublished: post.publishedAt,
+	dateModified: post.updatedAt,
+	mainEntityOfPage: {
+		'@type': 'WebPage',
+		'@id': canonicalUrl,
+	},
+	isPartOf: { '@id': `${site.href}#website` },
+	inLanguage: 'ja-JP',
+	...(post.eyecatch ? { image: post.eyecatch.url } : {}),
+};
 ---
 
 <Layout
 	title={`${post.title} | TOKIOLAB`}
 	description={post.excerpt || post.title}
 	ogImage={post.eyecatch?.url || undefined}
+	structuredData={structuredData}
 >
 	<main class="page">
 		<article class="article">
