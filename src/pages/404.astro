@@ -1,0 +1,48 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout
+	title="ページが見つかりません | TOKIOLAB"
+	description="お探しのページは見つかりませんでした。"
+>
+	<main class="page not-found">
+		<p class="status">404</p>
+		<h1>ページが見つかりません</h1>
+		<p>URLが変更されたか、削除された可能性があります。</p>
+		<a class="home-link" href="/">
+			トップページへ戻る
+		</a>
+	</main>
+</Layout>
+
+<style>
+	.not-found {
+		display: grid;
+		place-content: center;
+		justify-items: start;
+		min-height: 50vh;
+	}
+	.status {
+		margin: 0 0 8px;
+		color: var(--color-accent);
+		font-size: 0.85rem;
+		font-weight: 700;
+		letter-spacing: 0.12em;
+	}
+	h1 {
+		margin: 0;
+		font-size: clamp(1.7rem, 5vw, 2.4rem);
+		letter-spacing: -0.03em;
+		line-height: 1.3;
+	}
+	.not-found > p:not(.status) {
+		margin: 16px 0 0;
+		color: var(--color-muted);
+	}
+	.home-link {
+		margin-top: 28px;
+		color: var(--color-accent);
+		font-weight: 700;
+	}
+</style>
