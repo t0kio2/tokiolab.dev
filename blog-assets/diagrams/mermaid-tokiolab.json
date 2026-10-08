@@ -1,0 +1,37 @@
+{
+	"theme": "base",
+	"themeVariables": {
+		"background": "#fbfaf8",
+		"primaryColor": "#ffffff",
+		"primaryTextColor": "#151515",
+		"primaryBorderColor": "#151515",
+		"lineColor": "#151515",
+		"secondaryColor": "#fff3ed",
+		"tertiaryColor": "#e5e3df",
+		"actorBkg": "#fbfaf8",
+		"actorBorder": "#151515",
+		"actorTextColor": "#151515",
+		"actorLineColor": "#b9b5ad",
+		"signalColor": "#f04a24",
+		"signalTextColor": "#151515",
+		"labelBoxBkgColor": "#fbfaf8",
+		"labelBoxBorderColor": "#e5e3df",
+		"labelTextColor": "#151515",
+		"noteBkgColor": "#fff3ed",
+		"noteBorderColor": "#f04a24",
+		"noteTextColor": "#151515",
+		"fontFamily": "ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif"
+	},
+	"sequence": {
+		"useMaxWidth": true,
+		"diagramMarginX": 32,
+		"diagramMarginY": 28,
+		"actorMargin": 48,
+		"width": 150,
+		"height": 48,
+		"boxMargin": 10,
+		"noteMargin": 14,
+		"messageMargin": 34
+	},
+	"themeCSS": ".actor { font-weight: 650; } .messageText, .noteText { font-size: 15px; } .messageLine0 { stroke-width: 1.75px; } .note { stroke-width: 1.5px; }"
+}

@@ -7,6 +7,7 @@
 	},
 	"scripts": {
 		"dev": "astro dev",
+		"diagrams:build": "mmdc -p blog-assets/diagrams/puppeteer-config.json -c blog-assets/diagrams/mermaid-tokiolab.json -i blog-assets/diagrams/test.mmd -o blog-assets/diagrams/test.png -b '#fbfaf8' -s 2",
 		"build": "astro build",
 		"preview": "astro preview",
 		"astro": "astro",
@@ -25,6 +26,7 @@
 	},
 	"devDependencies": {
 		"@astrojs/check": "^0.9.10",
+		"@mermaid-js/mermaid-cli": "^12.0.0",
 		"@typescript-eslint/parser": "^8.70.1",
 		"eslint": "^9.39.5",
 		"eslint-plugin-astro": "^1.7.0",
