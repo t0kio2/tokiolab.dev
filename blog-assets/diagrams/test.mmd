@@ -7,5 +7,9 @@ sequenceDiagram
     participant Client as クライアント
     participant Server as サーバ
 
-    Server->>Client: サーバ証明書
-    Note over Client: サーバを認証
+    Client->>Server: Certificate（クライアント証明書）
+    Note over Client: それまでのハンドシェイク内容を<br/>クライアント秘密鍵で署名
+
+    Client->>Server: CertificateVerify（署名）
+    Note over Server: 受信した証明書内の公開鍵で<br/>署名を検証
+    Note right of Server: 検証OK：クライアントが<br/>秘密鍵を保持していると確認

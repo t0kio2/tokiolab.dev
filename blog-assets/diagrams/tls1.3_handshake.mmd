@@ -1,0 +1,26 @@
+---
+config:
+  theme: base
+---
+sequenceDiagram
+    autonumber
+    participant Client as クライアント
+    participant Server as サーバ
+
+    Client->>Server: ClientHello
+    Note over Client: 対応 TLS バージョン・暗号スイート・鍵共有情報を送信
+
+    Server->>Client: ServerHello
+    Note over Client,Server: 鍵共有でハンドシェイク用の鍵を導出<br/>以降のハンドシェイク通信は暗号化
+
+    Server->>Client: EncryptedExtensions
+    Server->>Client: Certificate（サーバ証明書）
+    Server->>Client: CertificateVerify（署名）
+    Server->>Client: Finished
+
+    Note over Client: 証明書と署名を検証し<br/>サーバを認証
+    Client->>Server: Finished
+
+    Note over Client,Server: TLS ハンドシェイク完了
+    Client->>Server: Application Data（暗号化）
+    Server->>Client: Application Data（暗号化）

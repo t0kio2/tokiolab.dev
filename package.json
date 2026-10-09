@@ -7,7 +7,7 @@
 	},
 	"scripts": {
 		"dev": "astro dev",
-		"diagrams:build": "mmdc -p blog-assets/diagrams/puppeteer-config.json -c blog-assets/diagrams/mermaid-tokiolab.json -i blog-assets/diagrams/test.mmd -o blog-assets/diagrams/test.png -b '#fbfaf8' -s 2",
+		"diagrams:build": "node scripts/build-diagrams.mjs",
 		"build": "astro build",
 		"preview": "astro preview",
 		"astro": "astro",

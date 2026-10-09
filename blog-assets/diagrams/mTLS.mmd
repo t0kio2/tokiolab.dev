@@ -1,0 +1,30 @@
+---
+config:
+  theme: base
+---
+sequenceDiagram
+    autonumber
+    participant Client as クライアント
+    participant Server as サーバ
+
+    Client->>Server: ClientHello
+    Server->>Client: ServerHello
+    Note over Client,Server: 以降のハンドシェイクメッセージは暗号化
+
+    Server->>Client: EncryptedExtensions
+    Server->>Client: CertificateRequest
+    Note over Server: クライアント証明書を要求
+
+    Server->>Client: Certificate（サーバ証明書）
+    Server->>Client: CertificateVerify（署名）
+    Server->>Client: Finished
+
+    Client->>Server: Certificate（証明書チェーン）
+    Note over Client: ハンドシェイク内容を<br/>クライアント秘密鍵で署名
+
+    Client->>Server: CertificateVerify（署名）
+    Note over Server: 証明書内の公開鍵で<br/>署名を検証
+    Note right of Server: 検証OK：クライアントが<br/>秘密鍵を保持していると確認
+
+    Client->>Server: Finished
+    Note over Client,Server: 相互認証済みの TLS 接続を開始
