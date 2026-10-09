@@ -161,6 +161,18 @@ const structuredData = {
 	.content :global(a) {
 		color: var(--color-accent);
 	}
+	.content :global(blockquote) {
+		margin: 28px 0;
+		padding-left: 1em;
+		border-left: 3px solid var(--color-line);
+		color: var(--color-muted);
+	}
+	.content :global(blockquote p) {
+		margin: 0;
+	}
+	.content :global(blockquote p + p) {
+		margin-top: 1em;
+	}
 	.content :global(img) {
 		max-width: 100%;
 		height: auto;
