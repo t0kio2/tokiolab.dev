@@ -1,0 +1,36 @@
+{
+	"id": "u_w5h1xp2g",
+	"createdAt": "2026-09-29T07:56:57.155Z",
+	"updatedAt": "2026-10-04T14:06:51.828Z",
+	"publishedAt": "2026-09-29T09:52:18.814Z",
+	"revisedAt": "2026-10-04T14:06:51.828Z",
+	"title": "AWS LambdaにTypeScriptアプリ (Node.js) をデプロイする",
+	"content": "<h1 id=\"h8d027c8ed3\">はじめに</h1><p>AWS Lambdaに、とある処理をするアプリを作ろうという話があり、その処理をTypeScriptで書くことになりました。</p><p>私は普段、TypeScriptはフロントエンドを書く言語として使っていましたが、今回初めてサーバで動くアプリをTypeScriptで書くことになりました。フロントエンドを書く際は、ViteやNext.jsのスターターキット(<code>npm create vite@latest</code> や <code>npx create-next-app</code>)を使うのであまり設定ファイルを意識することがありませんでしたが、サーバアプリを書く際はどうしたらいいのだろう？となりました。</p><p>今回は、手組みでLambdaにデプロイするサーバサイドTypeScriptプロジェクトを作る手順をまとめます。</p><p></p><h1 id=\"ha88dc2a453\">ゴール</h1><p>まずはじめに、最終的に目指す形を最初に整理します。</p><ol><li>Lambda設定<ul><li>ランタイム: nodejs20.x</li><li>ハンドラ : index.handler<ul><li>Lambdaはリクエストが来る度に <code>handler(event, context)</code> を呼ぶ。<code>event</code>には、API GatewayやSQSといったLambdaを呼ぶリソースから届いたjsonがそのまま入っている。</li></ul></li></ul><p></p></li><li>Lambdaに何を渡すのか : <code>dist/index.mjs</code> を1つ作り、zip化してLambdaにデプロイする<ul><li>handlerという名前の関数をexportしていること</li><li>必要なライブラリを全て<code>index.mjs</code>に含むこと</li></ul></li></ol><h4 id=\"h1f189ed3b7\">mjsとは？</h4><p>「このファイルはESモジュールです」とNode.jsに伝えるための拡張子。</p><p>Node.jsには、以下２種類のモジュールの書き方があります。</p><table><tbody><tr><th colspan=\"1\" rowspan=\"1\"><p>方式</p></th><th colspan=\"1\" rowspan=\"1\"><p>書き方</p></th><th colspan=\"1\" rowspan=\"1\"><p>拡張子</p></th></tr><tr><td colspan=\"1\" rowspan=\"1\"><p>ESモジュール (ESM, 今の標準)</p></td><td colspan=\"1\" rowspan=\"1\"><p>import / export</p></td><td colspan=\"1\" rowspan=\"1\"><p>.mjs</p></td></tr><tr><td colspan=\"1\" rowspan=\"1\"><p>CommonJS (CJS, 旧来の書き方)</p></td><td colspan=\"1\" rowspan=\"1\"><p>require() / module.exports</p></td><td colspan=\"1\" rowspan=\"1\"><p>.cjs</p></td></tr></tbody></table><p>拡張子が.jsである場合は、Node.jsは近くのpackage.jsonの&quot;type&quot;で判断します。&quot;module&quot;ならESM, 書いてなければCommonJSになります。</p><p>今回は標準のESMを採用します。</p><h4 id=\"h8512ff9b70\">なぜindex.mjsにまとめるのか？</h4><p>index.mjsにまとめる工程を<strong>バンドル</strong>と呼びます。バンドルする理由は以下です。</p><ol><li>サイズの圧縮 : Lambdaにアップできるzipは50MBまでなのでサイズを小さくしたい</li><li>起動が早くなる : Lambdaは起動する度にコードを読み込みます。バンドルしない場合、全てのファイルを1つずつ読み込む必要がありますが、バンドルされていると読み込みが早くなります。</li></ol><p>以上が目指すゴールです。TypeScriptで書いた各モジュールをESM形式で扱い、1つのファイル(index.mjs)にバンドルできるようにプロジェクトを作っていきます。</p><h1 id=\"h7895f4a00e\">プロジェクト作成</h1><p>まずは、プロジェクトのディレクトリを作り初期化します。</p><h2 id=\"h7be41eb7f7\">1. プロジェクト初期化</h2><pre><code>mkdir ts-lambda-app\ncd ts-lambda-app\nnpm init -y</code></pre><p>npm init -yすると、package.jsonが作成されます</p><div data-filename=\"package.json\"><pre><code class=\"language-json\">{\n  &quot;name&quot;: &quot;ts-lambda-app&quot;,\n  &quot;version&quot;: &quot;1.0.0&quot;,\n  &quot;description&quot;: &quot;&quot;,\n  &quot;main&quot;: &quot;index.js&quot;,\n  &quot;scripts&quot;: {\n    &quot;test&quot;: &quot;echo \\&quot;Error: no test specified\\&quot; &amp;&amp; exit 1&quot;\n  },\n  &quot;keywords&quot;: [],\n  &quot;author&quot;: &quot;&quot;,\n  &quot;license&quot;: &quot;ISC&quot;,\n  &quot;type&quot;: &quot;commonjs&quot;\n}</code></pre></div><h2 id=\"h6eb9f7a30f\">2. package.jsonをESMにする</h2><p>mainとtypeを変更します。 &quot;type&quot;: &quot;commonjs&quot; を &quot;module&quot; に変えるとimport / export で書けるようになります。</p><pre><code>&quot;main&quot;: &quot;dist/index.mjs&quot;,\n&quot;type&quot;: &quot;module&quot;</code></pre><h2 id=\"h91a3fc5ce7\">3. 必要なパッケージを入れる</h2><p>最低限必要なツールを入れます。</p><pre><code>npm i -D typescript esbuild tsx vitest @types/node @types/aws-lambda</code></pre><ul><li>typescript : TypeScriptコンパイラ/型チェックツール</li><li>esbuild : バンドラー。index.mjsを作るツール</li><li>tsx : 開発用ローカル実行ツール。Node.jsはtsファイルを読みないのでjsに変換する必要があるが、それを即座に行なってくれるツール</li><li>vitest : テストフレームワーク</li><li>@types/node : Node.jsの型定義 (process.env, path, fsなど)</li><li>@types/aws-lambda : AWS Lambdaの型定義 (event, contextなど)</li></ul><p></p><h3 id=\"hbc728d8486\">4. tsconfig.jsonを作る</h3><p>tsconfig.jsonを作成し以下の内容を記述する。</p><div data-filename=\"tsconfig.json\"><pre><code class=\"language-json\">{\n  &quot;compilerOptions&quot;: {\n    &quot;target&quot;: &quot;ES2022&quot;, // どの世代のJSにするか\n    &quot;module&quot;: &quot;Preserve&quot;, // import/export の記述をそのまま残す（Preserve）\n    &quot;strict&quot;: true, // 型チェックを厳格化\n    &quot;esModuleInterop&quot;: true, // 古い形式(CommonJS)で作られたライブラリもESMで読めるように互換性を保つ\n    &quot;skipLibCheck&quot;: true, // node_modules内ライブラリの型定義ファイルチェックをスキップ\n    &quot;noEmit&quot;: true,　// tscコマンドで型チェックする際、JSファイルを出力しない\n    &quot;types&quot;: [&quot;node&quot;] // プロジェクト全体で読み込む型定義を@types/nodeに限定\n  },\n  &quot;include&quot;: [&quot;src&quot;, &quot;test&quot;] // 型チェックの対象フォルダ\n}</code></pre></div><p>tsconfig.jsonは、TSプロジェクトのコンパイル方法を定義する設定ファイルです。</p><ul><li><code>&quot;module&quot;: &quot;Preserve&quot; </code>: TSコンパイラ(tsc)に対して、import/export構文の変換をせずそのまま維持します、という設定。このようにしておくと、以下の挙動になる。</li></ul><pre><code>import { foo } from &quot;./foo&quot;;\nexport const bar = foo + 1;</code></pre><p>という記述を、そのままの記法でJSに変換します。</p><p></p><h2 id=\"he5fb47a8e5\">5. ビルドスクリプトを用意</h2><p>package.jsonにscriptsを書く</p><pre><code>&quot;scripts&quot;: {\n  &quot;build&quot;: &quot;esbuild src/index.ts --bundle --platform=node --target=node22 --format=esm --outfile=dist/index.mjs&quot;,\n  &quot;typecheck&quot;: &quot;tsc&quot;,\n  &quot;test&quot;: &quot;vitest run&quot;,\n  &quot;local&quot;: &quot;tsx -e \\&quot;import(&apos;./src/index.ts&apos;).then(m =&gt; m.handler({ hello: &apos;world&apos; }))\\&quot;&quot;\n}</code></pre><p>以上で、コードを書く準備ができました。</p><h2 id=\"hbe7b768282\">6. handlerを書き、動かしてみる</h2><p>src/index.ts を作成し、簡単な処理を書いてみます。</p><pre><code>import type { Context } from &quot;aws-lambda&quot;;\n\nexport async function handler(event: unknown, context?: Context) {\n  console.log(JSON.stringify({ event, requestId: context?.awsRequestId }));\n  return { ok: true };\n}</code></pre><p>そして、以下を実行します。</p><pre><code>npm run local # handlerがローカルで動くか\nnpm run typecheck # 型チェック\nnpm run build # dist/index.mjsができる</code></pre><h1 id=\"hc702b9daf9\">Lambdaにデプロイ</h1><p>buildしてdist/index.mjsができたら、zipしてLambdaにアップロードし、ハンドラをindex.handlerに設定します。</p><p>これでひとまずLambdaで実行するサーバサイトTypeScriptプロジェクトができました！</p><p></p><h1 id=\"h9be0c3393d\">おわりに</h1><p>プロジェクトを手組みで作る方法をまとめました。</p><p>tsconfig.jsonの役割や、モジュールの種類、バンドラーの有無の違いなどが整理できました。</p><p>次回は、tsconfig.jsonの細かな内容についてまとめようと思います。</p><p></p>",
+	"excerpt": "テストViteやNext.jsのスターターキットに頼らず、AWS Lambda向けのサーバーサイドTypeScriptプロジェクトを手組みで構築。tsconfigの『module: Preserve』の役割やesbuildで1ファイルにバンドルする理由をわかりやすく解説します。",
+	"category": {
+		"id": "tolne89kt",
+		"createdAt": "2026-09-27T05:45:21.291Z",
+		"updatedAt": "2026-09-27T05:45:21.291Z",
+		"publishedAt": "2026-09-27T05:45:21.291Z",
+		"revisedAt": "2026-09-27T05:45:21.291Z",
+		"name": "テクノロジー"
+	},
+	"tags": [
+		{
+			"id": "biz07kikd7_s",
+			"createdAt": "2026-09-29T07:57:09.864Z",
+			"updatedAt": "2026-09-29T07:57:09.864Z",
+			"publishedAt": "2026-09-29T07:57:09.864Z",
+			"revisedAt": "2026-09-29T07:57:09.864Z",
+			"name": "TypeScript"
+		},
+		{
+			"id": "sem8ioufsgrf",
+			"createdAt": "2026-09-29T07:57:20.066Z",
+			"updatedAt": "2026-09-29T07:57:20.066Z",
+			"publishedAt": "2026-09-29T07:57:20.066Z",
+			"revisedAt": "2026-09-29T07:57:20.066Z",
+			"name": "AWS"
+		}
+	]
+}

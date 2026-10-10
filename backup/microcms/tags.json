@@ -1,0 +1,34 @@
+[
+	{
+		"id": "sem8ioufsgrf",
+		"createdAt": "2026-09-29T07:57:20.066Z",
+		"updatedAt": "2026-09-29T07:57:20.066Z",
+		"publishedAt": "2026-09-29T07:57:20.066Z",
+		"revisedAt": "2026-09-29T07:57:20.066Z",
+		"name": "AWS"
+	},
+	{
+		"id": "biz07kikd7_s",
+		"createdAt": "2026-09-29T07:57:09.864Z",
+		"updatedAt": "2026-09-29T07:57:09.864Z",
+		"publishedAt": "2026-09-29T07:57:09.864Z",
+		"revisedAt": "2026-09-29T07:57:09.864Z",
+		"name": "TypeScript"
+	},
+	{
+		"id": "o0dhisrrb",
+		"createdAt": "2026-09-27T14:33:25.456Z",
+		"updatedAt": "2026-09-27T14:33:25.456Z",
+		"publishedAt": "2026-09-27T14:33:25.456Z",
+		"revisedAt": "2026-09-27T14:33:25.456Z",
+		"name": "セキュリティ"
+	},
+	{
+		"id": "uk9rk9hrdv",
+		"createdAt": "2026-09-27T11:35:07.635Z",
+		"updatedAt": "2026-09-27T11:35:07.635Z",
+		"publishedAt": "2026-09-27T11:35:07.635Z",
+		"revisedAt": "2026-09-27T11:35:07.635Z",
+		"name": "雑記"
+	}
+]

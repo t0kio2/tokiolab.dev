@@ -15,6 +15,16 @@ npm run build
 
 認証情報がない状態では、開発・デザイン確認用のモック記事が表示されます。認証情報を設定すると microCMS の公開記事に自動的に切り替わります。API の作成手順は [docs/microcms-api.md](docs/microcms-api.md) を参照してください。
 
+## microCMS のバックアップ
+
+公開済みの記事・カテゴリー・タグを、Git 管理する Markdown と原本 JSON に保存できます。サイトのビルド成果物には含まれません。
+
+```sh
+npm run microcms:backup
+```
+
+保存形式、全件取得、GitHub Actions による定期実行の手順は [backup/microcms/README.md](backup/microcms/README.md) を参照してください。
+
 ## Cloudflare Workers への SSG デプロイ
 
 `wrangler.jsonc` は、生成した `dist` を Cloudflare Workers の静的アセットとして配信する設定です。初回だけ Cloudflare にログインしてデプロイします。
