@@ -1,0 +1,20 @@
+---
+config:
+  theme: base
+---
+flowchart TB
+    Client["<div style='width: 220px; text-align: center;'>ホストPC<br/>curl(クライアント)<br/>+<br/>クライアント証明書</div>"]
+
+    subgraph Compose["Docker環境(サーバ)"]
+        direction TB
+        Nginx["<div style='width: 220px; text-align: center;'>Nginx<br/>TLS 終端</div>"]
+        Api["<div style='width: 220px; text-align: center;'>Node.js API</div>"]
+        Nginx -->|HTTP| Api
+    end
+
+    Client -->|mTLS : 8443| Nginx
+
+    classDef default fill:#fbfaf8,stroke:#151515,color:#151515,stroke-width:1.5px
+    classDef gateway fill:#fff3ed,stroke:#f04a24,color:#151515,stroke-width:1.5px
+    class Nginx gateway
+    style Compose fill:#fbfaf8,stroke:#b9b5ad,stroke-dasharray:5 4
