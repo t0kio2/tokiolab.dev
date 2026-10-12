@@ -147,6 +147,7 @@ const structuredData = {
 	}
 	.content {
 		font-size: 1rem;
+		overflow-wrap: anywhere;
 	}
 	.content :global(h2) {
 		margin: 48px 0 14px;
@@ -172,6 +173,13 @@ const structuredData = {
 	}
 	.content :global(blockquote p + p) {
 		margin-top: 1em;
+	}
+	.content :global(figure) {
+		max-width: 100%;
+		margin-inline: 0;
+	}
+	.content :global(figure img) {
+		display: block;
 	}
 	.content :global(img) {
 		max-width: 100%;

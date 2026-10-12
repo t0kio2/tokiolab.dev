@@ -9,7 +9,7 @@ flowchart TB
         direction TB
         Nginx["<div style='width: 220px; text-align: center;'>Nginx<br/>TLS 終端</div>"]
         Api["<div style='width: 220px; text-align: center;'>Node.js API</div>"]
-        Nginx -->|HTTP| Api
+        Nginx -->|HTTP:3000| Api
     end
 
     Client -->|mTLS : 8443| Nginx

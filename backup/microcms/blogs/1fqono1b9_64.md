@@ -1,9 +1,9 @@
 ---
 id: '1fqono1b9_64'
-title: 'すぐ忘れるTLS・ハンドシェイクの流れ - TLS1.3をおさらい'
+title: 'SSL/TLS入門 | すぐ忘れるTLS・ハンドシェイクの流れ'
 excerpt: 'mTLSを理解する前知識として、TLS 1.3の仕組みとハンドシェイクの流れを一から整理しました。公開鍵・共通鍵の役割から、ClientHello/ServerHelloでの共通鍵生成タイミング、TLS 1.2との通信速度の違い（1-RTT）まで分かりやすく解説します。'
 publishedAt: '2026-09-29T04:52:06.144Z'
-updatedAt: '2026-10-09T03:27:46.965Z'
+updatedAt: '2026-10-11T11:41:52.159Z'
 category:
   {
     'id': 'tolne89kt',
@@ -22,6 +22,14 @@ tags:
       'publishedAt': '2026-09-27T14:33:25.456Z',
       'revisedAt': '2026-09-27T14:33:25.456Z',
       'name': 'セキュリティ',
+    },
+    {
+      'id': 'mc253_-gdrv7',
+      'createdAt': '2026-10-11T11:41:03.647Z',
+      'updatedAt': '2026-10-11T11:41:03.647Z',
+      'publishedAt': '2026-10-11T11:41:03.647Z',
+      'revisedAt': '2026-10-11T11:41:03.647Z',
+      'name': 'SSL/TLS',
     },
   ]
 eyecatch: null
