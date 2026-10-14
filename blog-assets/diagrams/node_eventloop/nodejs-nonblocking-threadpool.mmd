@@ -1,0 +1,24 @@
+---
+config:
+  theme: base
+---
+sequenceDiagram
+    autonumber
+    participant Main as メインスレッド<br/>（イベントループ）
+    participant Pool as libuv<br/>スレッドプール
+    participant OS as OS
+
+    Note over Main: ファイルI/Oを開始<br/>I/O完了を待たずイベントループは別タスクを実行できる
+
+    alt スレッドプールを使うI/O
+        Main->>Pool: I/O処理を委譲
+        activate Pool
+        Pool->>Pool: ワーカースレッドがI/Oを実行
+        Pool-->>Main: 完了通知をイベントループへ渡す
+        deactivate Pool
+    else ネットワーク I/O など
+        Main->>OS: OS の非同期I/Oを開始
+        OS-->>Main: 完了通知をイベントループへ渡す
+    end
+
+    Note over Main: イベントループが完了通知を処理<br/>コールバック / Promise の後続処理を実行
