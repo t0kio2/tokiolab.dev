@@ -1,0 +1,22 @@
+---
+config:
+  theme: base
+---
+sequenceDiagram
+    autonumber
+    participant Main as メインスレッド<br/>（イベントループ）
+    participant Pool as libuv<br/>スレッドプール
+    participant OS as OS
+
+    Note over Main: console.log('1. 処理を開始します')
+    Main->>Pool: await fs.readFile('./sample.txt', 'utf8')
+    activate Pool
+    Note over Main: await により、この処理の後続部分を一時停止<br/>イベントループは別タスクを実行できる
+    Pool->>OS: ファイルを読み込む
+    activate OS
+    OS-->>Pool: ファイルの内容を返す
+    deactivate OS
+    Pool-->>Main: Promise を fulfilled にする
+    deactivate Pool
+    Note over Main: await の後から処理を再開
+    Note over Main: console.log('2. ファイルの読み込みが完了しました')<br/>console.log('3. 次の処理')

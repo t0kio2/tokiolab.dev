@@ -69,6 +69,11 @@ export async function getPosts({
 	return (await request<ListResponse<BlogPost>>('blogs', '', `?${params}`))
 		.contents;
 }
+export async function getPostCount(): Promise<number> {
+	const params = new URLSearchParams({ orders: '-publishedAt', limit: '1' });
+	return (await request<ListResponse<BlogPost>>('blogs', '', `?${params}`))
+		.totalCount;
+}
 export async function getCategories(): Promise<Taxonomy[]> {
 	return (
 		await request<ListResponse<Taxonomy>>('categories', '', '?orders=name')

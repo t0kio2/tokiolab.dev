@@ -1,0 +1,15 @@
+---
+config:
+  theme: base
+---
+sequenceDiagram
+    autonumber
+    participant Main as メインスレッド<br/>（イベントループ）
+    participant OS as OS
+
+    Note over Main: http.request() や net.Socket などで<br/>ネットワーク I/O を開始する
+    Main->>OS: OS の非同期 I/O に<br/>ソケットを登録 / 接続を開始
+    Note over OS: 接続先との通信を OS が処理する
+    Note over Main: スレッドプールを占有せず、<br/>イベントループは別タスクを実行できる
+    OS-->>Main: 応答データと I/O イベントを通知
+    Note over Main: イベントループが通知を処理し、<br/>コールバック / Promise の後続処理を実行

@@ -1,0 +1,22 @@
+---
+config:
+  theme: base
+---
+flowchart TD
+    Start((イベントループ開始)) --> Timers["1. Timers フェーズ<br/>タイマーのコールバック"]
+    Timers --> Pending["2. Pending Callbacks<br/>遅延された I/O コールバック"]
+    Pending --> Poll["3. Poll フェーズ<br/>I/O コールバックを処理"]
+    Poll --> HasEvent{"新しい I/O イベントがある?"}
+    HasEvent -->|あり| PollCallbacks["I/O コールバックを実行"]
+    PollCallbacks --> Check["4. Check フェーズ<br/>setImmediate のコールバックを実行"]
+    HasEvent -->|なし| Wait["新しい I/O イベントを待つ"]
+    Wait --> HasEvent
+    Check --> Close["5. Close Callbacks<br/>ソケットの終了処理"]
+    Close --> Timers
+
+    classDef phase fill:#fff3ed,stroke:#f04a24,stroke-width:2px;
+    classDef decision fill:#ffffff,stroke:#151515,stroke-width:1.5px;
+    classDef action fill:#e5e3df,stroke:#151515,stroke-width:1.5px;
+    class Start,Timers,Pending,Poll,Check,Close phase;
+    class HasEvent decision;
+    class PollCallbacks,Wait action;

@@ -1,0 +1,36 @@
+{
+	"id": "75po7aaqvrdd",
+	"createdAt": "2026-10-15T13:57:31.066Z",
+	"updatedAt": "2026-10-20T15:02:46.963Z",
+	"publishedAt": "2026-10-17T03:10:51.293Z",
+	"revisedAt": "2026-10-20T15:02:46.963Z",
+	"title": "【第1回】JavaScriptで学ぶスタックとヒープ - 仕組み解説",
+	"content": "<h1 id=\"h8d027c8ed3\">はじめに</h1><p>今回はメモリにおけるスタック領域とヒープ領域について整理します。</p><p>プログラムにおいて、関数が呼び出されたりオブジェクトや配列を作ったりする時に、メモリ上で何が起こっているのでしょうか。</p><p>JavaScriptをはじめ、多くのプログラミング言語のランタイムやOSはメモリを効率よく管理するために<strong>コールスタック</strong>と<strong>メモリヒープ</strong>という２つの異なる領域を使い分けています。</p><p></p><p>この記事では、この２つのメモリ領域の役割、視覚的な挙動、なぜLIFOが必要なのか、そしてコードの書き方でメモリの挙動がどう変わるのかを整理します。</p><p>サンプルコードはJavaScriptに統一します。</p><h1 id=\"hd94d8b8d8c\">スタック・ヒープとは？</h1><p>コンピュータのメモリ(RAM)という限られたリソースを安全に、高速に使い回すため、データの性質に合わせて保管場所を明確に分けています。</p><ul><li><strong>スタック(コールスタック: CallStack)</strong>: サイズが小さく、いつ始まりいつ終わるかが予測できるデータを格納する。高速に処理できる。</li><li><strong>ヒープ(メモリヒープ: Memory Heap)</strong>: サイズが大きかったり、いつまで使われ続けるのか予測できないようなデータを格納する。スタックより遅い。</li></ul><p>それぞれ具体的な仕組みを見ていきます。</p><p></p><h1 id=\"hfe8289bc99\">コールスタック(Call Stack)</h1><p>コールスタックは、実行中の処理(関数)を順番に積み上げるメモリ領域です。</p><ul><li>仕組み : 最初に入れたデータを最後に取り出す (<strong>LIFO</strong>: Last In, First Out) という、本を縦に積み上げるようなルールで動きます。</li><li>動き :<ul><li>関数が呼ばれると、スタックの一番上に追加(Push)される</li><li>その関数が終わる(returnする)と、一番上から取り除かれる(Pop)</li><li>全ての処理が終わると、スタックは空になる</li></ul></li></ul><h2 id=\"hcf4c0ae6f0\">具体例</h2><p>以下のように、関数が別の関数を呼び出すネスト処理を考えてみます。</p><pre><code class=\"language-javascript\">function third() {\n  console.log(&apos;3. third()の処理&apos;);\n}\n\nfunction second() {\n  console.log(&apos;2. second()の開始&apos;);\n  third();\n  console.log(&apos;4. second()の終了&apos;);\n}\n\nfunction first() {\n  console.log(&apos;1. first()の開始&apos;);\n  second();\n  console.log(&apos;5. first()の終了&apos;);\n}\n\nfirst();</code></pre><p>まず、first()を呼び出しているので出力は以下のようになりますね。</p><pre><code class=\"language-javascript\">// 出力結果\n1. first()の開始\n2. second()の開始\n3. third()の処理\n4. second()の終了\n5. first()の終了</code></pre><p>この挙動はまさにLIFOであるスタックの挙動を示しています。</p><h3 id=\"h3c00ac9184\">STEP 1. first() が呼ばれて積まれる(Push)</h3><pre><code>[         ] \n[ first() ] &lt;-- push\n----------------- \nスタック：[first]</code></pre><h3 id=\"h1a9702bdf6\">STEP 2. second() が呼ばれて積まれる(Push)</h3><pre><code>[ second() ] &lt;-- push\n[ first()  ] &lt;-- 未完了\n----------------- \nスタック：[first, second]</code></pre><h3 id=\"h2b890fc7ab\">STEP 3. third() が呼ばれて積まれる(Push)</h3><pre><code>[ third()  ] &lt;-- push\n[ second() ] &lt;-- 未完了\n[ first()  ] &lt;-- 未完了\n----------------- \nスタック：[first, second, third]</code></pre><h3 id=\"habb61c5dc3\">STEP 4. third() が終わって消える(Pop)</h3><pre><code>[          ] &lt;-- third()が取り除かれる(pop)\n[ second() ] &lt;-- 処理がここに戻る\n[ first()  ] &lt;-- 未完了\n----------------- \nスタック：[first, second]</code></pre><h3 id=\"h79a6e772ad\">STEP 5. second() が終わって消える(Pop)</h3><pre><code>[          ] &lt;-- second()が取り除かれる(pop)\n[ first()  ] &lt;-- 処理がここに戻る\n----------------- \nスタック：[first]</code></pre><h3 id=\"h4d04804ab6\">STEP 6. first() が終わって消える(Pop)</h3><p>最後に、firstに処理が戻り、完了するとpopされスタックが空になります。</p><pre><code>[          ] &lt;-- first()が取り除かれる(pop)\n----------------- \nスタック：[]</code></pre><h2 id=\"h986c582d15\">なぜLIFO(後入れ先出し)なのか</h2><p>もし仮に、これが先入れ先出し(FIFO)だとどうなるでしょうか？</p><p>関数がネストになっている場合、「最後に呼び出した関数を一番最初に処理完了し、元の呼び出し元へ戻る」という手順を踏まないと、処理の順番が破綻してしまいます。</p><p>また、自分自身を呼び出す再帰関数が動くのも、このLIFO構造のためです。</p><p>一番奥まで進んだ処理の結果から順に、綺麗に巻き戻して外側へ持ち帰ることができるため、複雑なネストや再帰的なプログラムが成立します。</p><p></p><p>⚠️スタックオーバーフロー</p><p>再帰関数などで終了条件を忘れて無限ループになると、コールスタックが限界まで積み上がって溢れます。</p><p>それがスタックオーバーフロー(<code>RangeError: Maximum call stack size exceeded</code>)です。</p><p></p><h1 id=\"hef030bc7f4\">メモリヒープ (Memory Heap)</h1><p>コールスタックがLIFOのような構造をもち「今実行中の関数」を高速に処理する場所であるのに対し、メモリヒープは乱雑に空いている場所にデータを置いておける場所です。</p><ul><li>仕組み: オブジェクトや配列、関数定義などの「サイズが大きく、いつまで生き残るか予測できないデータ」を置いておくための非構造化された巨大なメモリ倉庫です。 スタックが「整理棚」のように綺麗に順番を守るのに対し、ヒープは「広い部屋にダンボール箱をバラバラに置くような、無秩序で自由度が高い空間」になっています。</li><li>主な特徴:<ul><li><strong>動的なサイズ拡張</strong>: データが増えたり減ったりしても、空いているスペースに柔軟に配置できる。</li><li><strong>アドレスによる管理</strong>: データの実体はヒープのあちこちに置かれるため、スタック上の変数にはその参照(ポインタ)だけが保持される。</li><li><strong>ガベージコレクション(GC)</strong>: どこからも参照されなくなった不要なデータは、ランタイムのGCによって自動的に消去される(メモリ解放)。</li></ul></li></ul><p></p><h2 id=\"hcf4c0ae6f0\">具体例</h2><p>次のようなオブジェクトを生成して返す関数を考えてみます。</p><pre><code>function createUser() {\n  const user = { name: &quot;Tom&quot;, age: 30 };\n  return user;\n}\n\nconst myUser = createUser();</code></pre><p><code>createUser()</code>を呼び出し、<code>myUser</code>に結果を代入する際の挙動を整理します。</p><p></p><h3 id=\"hca1b6dfc2c\">STEP 1: <code>createUser()</code> が呼び出され、スタックにフレームが積まれる</h3><p><code>createUser()</code>を呼ぶとスタックに積まれ、その関数の処理が始まります。</p><p>スタックの状態: <code>[ createUser() ]</code></p><p></p><h3 id=\"hc45c23ebae\">STEP 2: オブジェクトが作られヒープに「実体」が置かれる（アロケーション）</h3><p>コード内の<code>{ name: &quot;Tom&quot;, age: 30 };</code>が実行される際、ヒープ上の空いているスペースに置かれます。</p><p>ヒープの状態: メモリのどこかに<code>{ name: &quot;Tom&quot;, age: 30 };</code>が置かれる</p><p></p><h3 id=\"h73b21edb0a\">STEP 3: スタックの変数にヒープの参照が書き込まれる</h3><p>スタック側にある変数userに、step2で置かれたオブジェクトの参照が書き込まれる</p><p></p><h3 id=\"h3fa37d1ed7\">STEP 4: 呼び出し元へ参照が返され、<code>createUser()</code> が消える（Pop）</h3><p><code>return user;</code>により<code>myUser</code>にオブジェクトの参照が渡されます。</p><p><code>createUser()</code>はreturnしてるので処理完了により、スタックから消えます(Pop)。</p><p></p><h3 id=\"h6579fd3d3e\">STEP 5: ガベージコレクションによるデータの掃除</h3><p>もしこの後、<code>myUser = null;</code>のように書き換えると、どこからもヒープ上のオブジェクト(<code>{name: &apos;Tom&apos;...}</code>)は参照されなくなります。</p><p>そうなると、OSやランタイム(JavaScriptの場合、V8エンジン)が自動でヒープから消去します(メモリ解放)。</p><p></p><h3 id=\"h61a8e155db\">⚠️補足: グローバル変数や関数定義はどこに置かれる？</h3><p>上記の例ではヒープの動きをシンプルに説明しているためグローバル変数<code>myUser</code>や<code>createUser()</code>の定義のアロケーションは省いています。</p><p>実際には、</p><ul><li>関数定義: JavaScriptでは関数定義もオブジェクトの1種です。そのため、コードが読まれると関数の実態もヒープに置かれます</li><li><strong>グローバル領域</strong>と変数: コールスタックの一番下には、プログラム全体を動かすための「<strong>グローバル領域(グローバルフレーム)</strong>」が土台として常に存在しています。グローバル変数や、関数内の変数(ヒープの参照を持つ変数)は、グローバル領域やスタック領域で管理されます。</li></ul><p></p><h1 id=\"h9be0c3393d\">おわりに</h1><p>今回はコールスタックとメモリヒープの基本的な仕組みと、LIFOである理由について見てきました。 </p><p>次回の記事では、実装によるメモリ挙動の違い(値コピーと参照コピー、クロージャのメモリ挙動、関数のstatic呼び出しとnewの違い)といった内容を整理しようと思います。</p>",
+	"excerpt": "JavaScriptのメモリ管理の基本「コールスタック」と「メモリヒープ」の仕組みを初心者向けに徹底解説。関数実行時のLIFOの動きからガベージコレクションまで、図解を交えて分かりやすく整理します。",
+	"category": {
+		"id": "tolne89kt",
+		"createdAt": "2026-09-27T05:45:21.291Z",
+		"updatedAt": "2026-09-27T05:45:21.291Z",
+		"publishedAt": "2026-09-27T05:45:21.291Z",
+		"revisedAt": "2026-09-27T05:45:21.291Z",
+		"name": "テクノロジー"
+	},
+	"tags": [
+		{
+			"id": "m3yctbz8p",
+			"createdAt": "2026-10-12T08:15:08.127Z",
+			"updatedAt": "2026-10-12T08:15:08.127Z",
+			"publishedAt": "2026-10-12T08:15:08.127Z",
+			"revisedAt": "2026-10-12T08:15:08.127Z",
+			"name": "Node.js"
+		},
+		{
+			"id": "21y6mvzllp",
+			"createdAt": "2026-10-17T03:09:48.376Z",
+			"updatedAt": "2026-10-17T03:09:48.376Z",
+			"publishedAt": "2026-10-17T03:09:48.376Z",
+			"revisedAt": "2026-10-17T03:09:48.376Z",
+			"name": "JavaScript"
+		}
+	]
+}

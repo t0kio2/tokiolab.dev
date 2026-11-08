@@ -1,0 +1,44 @@
+{
+	"id": "kqb-hkv_ej",
+	"createdAt": "2026-10-22T08:14:10.676Z",
+	"updatedAt": "2026-10-23T03:18:12.186Z",
+	"publishedAt": "2026-10-23T03:18:12.186Z",
+	"revisedAt": "2026-10-23T03:18:12.186Z",
+	"title": "中間証明書の秘密鍵が漏れるとどうなる？認証局eMudhraのインシデントに学ぶ影響とエンジニアの対策",
+	"content": "<h1 id=\"h8d027c8ed3\">はじめに</h1><p>2026年10月20日、インドの認証局eMudhra(イー・ムドラ)の中間証明書8件において、秘密鍵が第三者でも数ミリ秒で復元可能な状態にあることがわかりました。</p><p>なんと中間証明書の秘密鍵が「4」「56」「115」といった暗号鍵とは呼べない極端に小さい数値が使われていたようです。</p><p>原因は鍵生成スクリプトの欠陥と人為的ミスとのことですが、事態を重く見たGoogleやMozillaなどによって、大元であるルート証明書の失効という異例の事態にまで発展しています。</p><p></p><p>今回は、</p><ul><li>秘密鍵について</li><li>中間証明書の秘密鍵が再現されるとどうなる？</li><li>中間証明書・ルート証明書が失効するとどうなる？</li></ul><p>について書いていきます。</p><h1 id=\"he1c4adf471\">秘密鍵の値はどのように決まるのか</h1><p>今回使われていた「<strong>P-384(楕円曲線暗号: ECC)</strong>」という暗号方式において、適切に生成されたP-384の秘密鍵は「1から2の384乗までの範囲からランダムに選ばれた1つの整数」になります。</p><p>384bitとは、10の115乗以上という天文学的な数の組み合わせになるので、現代のコンピュータでは推測不可能な値です。</p><p>実際にP-384による秘密鍵を生成してみました。</p><h4 id=\"he4a6255101\">p-384の鍵(EC鍵)</h4><pre><code>$ openssl genpkey -algorithm EC -pkeyopt ec_paramgen_curve:P-384 -out private.key\n\n$ ls\nprivate.key</code></pre><p>private.keyができました。</p><p>ファイル中身を見てみます</p><div data-filename=\"private.key\"><pre><code>$ cat private.key\n-----BEGIN PRIVATE KEY-----\nMIG2AgEAMBAGByqGSM49AgEGBSuBBAAiBIGeMIGbAgEBBDDGWgq8cR/iFFiKnhq6\nzwLH2pKfA3sEl9vniGtCFwt5dKtu0AZJQjqFTWCdVRQg2JuhZANiAARVDvkNacHa\nFBynLAeMU3HYhAsOMu3XpIeefZDYQWGUiZgFQYoTmL55W1DNmDGi9PG5BBr0EFcG\n5JYnG9dKHwjagUAsKm/GVAZzEgE6NToqJJHcUXhjxECafCkPVmCae+0=\n-----END PRIVATE KEY-----</code></pre></div><p>private.keyというファイルの中身は、PEM形式と呼ばれるテキストデータです。</p><p>これは、</p><ul><li>秘密鍵の実際の値</li><li>暗号方式: 今回P-384</li></ul><p>といった情報をバイナリ化し、さらにBase64でエンコードしたものになります。</p><p></p><p>秘密鍵の実際の値を見るのは以下のコマンドを使います。</p><pre><code>$ openssl pkey -in private.key -text -noout\nPrivate-Key: (384 bit)\npriv:\n    c6:5a:0a:bc:71:1f:e2:14:58:8a:9e:1a:ba:cf:02:\n    c7:da:92:9f:03:7b:04:97:db:e7:88:6b:42:17:0b:\n    79:74:ab:6e:d0:06:49:42:3a:85:4d:60:9d:55:14:\n    20:d8:9b\npub:\n    04:55:0e:f9:0d:69:c1:da:14:1c:a7:2c:07:8c:53:\n    71:d8:84:0b:0e:32:ed:d7:a4:87:9e:7d:90:d8:41:\n    61:94:89:98:05:41:8a:13:98:be:79:5b:50:cd:98:\n    31:a2:f4:f1:b9:04:1a:f4:10:57:06:e4:96:27:1b:\n    d7:4a:1f:08:da:81:40:2c:2a:6f:c6:54:06:73:12:\n    01:3a:35:3a:2a:24:91:dc:51:78:63:c4:40:9a:7c:\n    29:0f:56:60:9a:7b:ed\nASN1 OID: secp384r1\nNIST CURVE: P-384</code></pre><p>Base64文字列がデコードされ、さらにバイナリをテキスト化して出力されました。</p><p>このprivが秘密鍵です。</p><p>今回問題になった中間証明書の秘密鍵は、この値が4といった数値だったようです。</p><p></p><h1 id=\"h1404ac0960\">秘密鍵を再現する方法</h1><p>公開鍵暗号(楕円曲線暗号)では、公開鍵と秘密鍵は数学的な計算で結びついています。</p><p>公開鍵は「<strong>あらかじめ決められた基準点(G)</strong>に対して、秘密鍵の数値の回数だけ足し算（または掛け算）を繰り返す」ことで作られます。</p><p>本来、天文学的な大きさの秘密鍵が使われていれば、公開鍵から秘密鍵を逆算して割り出すことは現代のコンピュータでも不可能です。</p><p></p><p>しかし、今回のように秘密鍵が「4」だった場合はどうでしょうか。</p><p> 中間証明書には「中間CAの公開鍵」が必ず含まれているため、誰でも公開鍵を手に入れることができます。</p><p>攻撃者はその公開鍵を見ながら、手元のPCで次のような総当たり計算を行うだけです。</p><ol><li>「秘密鍵が1だとしたら、公開鍵はどうなる？」 → 実際の公開鍵と不一致</li><li>「秘密鍵が2だとしたら？」 → 不一致</li><li>「秘密鍵が3だとしたら？」 → 不一致</li><li>「秘密鍵が4だとしたら？」 → 実際の公開鍵と一致！秘密鍵は「4」だと確定<p></p></li></ol><p>このような総当たりでも数m秒で秘密鍵を当てられたと思われます。</p><p>例えば以下のようなコードで秘密鍵を探し出します。</p><pre><code>from ecdsa import NIST384p\n\n# 楕円曲線の基準点Gを取得 基準点は公開情報\nG = NIST384p.generator\n\n# 中間証明書の公開鍵\ntarget_pubkey = xxx\n\n# 1から順に総当たりで試す（今回は1000まで）\nfor i in range(1, 1000):\n    # 「もし秘密鍵が i だったら？」と仮定して公開鍵を計算\n    guess_pubkey = i * G\n    \n    # 計算した公開鍵が、ターゲットの公開鍵と一致するかチェック\n    if guess_pubkey == target_pubkey:\n        print(f&quot;実際の公開鍵と一致！秘密鍵は: {i} です&quot;)\n        break</code></pre><p></p><h1 id=\"hfea919a5d4\">中間証明書の秘密鍵が再現されるとどうなる？</h1><p><a href=\"https://tokiolab.dev/blog/o0194v13ov9u/\" target=\"_blank\" rel=\"noopener noreferrer\">前回の記事</a>で「中間CAの秘密鍵はサーバ証明書を発行(署名)するために使われる」と解説しました。</p><pre><code class=\"language-text\">┌──────────────────────────┐\n│ 中間CA\n│\n│ 持っているもの\n│ ・中間CA秘密鍵\n│ ・中間CA公開鍵\n└──────────────────────────┘\n             │\n             │ 中間CA秘密鍵で\n             │ サーバ証明書に署名\n             ▼\n┌──────────────────────────┐\n│ example.comのサーバ証明書\n│\n│ ・example.com\n│ ・サーバ公開鍵\n│ ・有効期間\n│ ・中間CAによる署名\n└──────────────────────────┘</code></pre><p>発行されたサーバ証明書は、<strong>証明書チェーン</strong>という仕組みで「正規の認証局により発行されてるね」とわかります。</p><h4 id=\"h1ccbf620f5\">証明書チェーン</h4><ol><li>ハンドシェイクにおいて、クライアントがサーバ証明書と中間証明書を取得</li><li>中間証明書の公開鍵で、サーバ証明書の署名を検証</li><li>自分が持っている(Trust Store)ルート証明書の公開鍵で、中間証明書の署名を検証</li></ol><p>このように、署名を検証することで確認できます。</p><p></p><p>ですので、秘密鍵が攻撃者に再現されると任意のドメインの偽のサーバ証明書が発行できてしまうことになります。</p><p>そして、その秘密鍵は正しいものなので証明書チェーンで検証成功するので、正しい証明書と攻撃者の証明書が区別できなくなります。</p><pre><code class=\"language-text\">┌──────────────────────────┐\n│ 攻撃者\n│\n│ 持っているもの\n│ ・再現した中間CA秘密鍵\n│ ・中間CA公開鍵(中間証明書から取得できる)\n└──────────────────────────┘\n             │\n             │ 中間CA秘密鍵で\n             │ サーバ証明書に署名\n             ▼\n┌──────────────────────────┐\n│ example.comの偽サーバ証明書\n│\n│ ・example.com\n│ ・サーバ公開鍵\n│ ・有効期間\n│ ・攻撃者による署名\n└──────────────────────────┘</code></pre><h4 id=\"h400815796b\">考えられる攻撃</h4><p>もし、偽サーバ証明書のサーバに使い繋いでしまうと、</p><ul><li>HTTPS通信の盗聴および改ざん</li></ul><p>のリスクにされされます。</p><p></p><h1 id=\"h20f6a95f80\">中間証明書・ルート証明書が失効するとどうなる？</h1><p>今回の件で、中間証明書・ルート証明書が失効になります。</p><p>これはどのような影響があるのでしょうか？</p><p></p><h2 id=\"hf91a341510\">1. 中間証明書だけ失効した場合</h2><p>中間証明書だけを失効リストに入れた場合、アクセスする経路によって異なります。</p><h3 id=\"h5609702166\"><strong>ブラウザへの影響:  ✅安全</strong></h3><p> Chrome、Firefox、Safariなどのモダンブラウザは、ベンダー独自の失効リスト(CRLSetsなど)の自動更新や、CT(証明書の透明性)ログの確認を標準で行っています。</p><p>ブラウザ本体の手動アップデート等をしなくても裏側で安全が保たれます。</p><ul><li><strong>挙動:</strong> 画面に「NET::ERR_CERT_REVOKED」といった真っ赤な警告画面が表示され、通信は強制的に遮断されます（情報漏洩は防げます）。</li></ul><p></p><h3 id=\"h9ecff7d6a1\"><strong>プログラム(curl, Python, Goなど)への影響: 🚨危険</strong></h3><p>これが今回の事件で<strong>最も警戒されるパターン</strong>です。</p><p>多くの標準的なプログラムは、デフォルトでは証明書の失効リスト(CRLやOCSP)を確認しに行きません。</p><ul><li><strong>挙動:</strong> プログラムは失効している中間証明書を信用し、エラーを出さずに普通に接続を完了してしまいます。もし接続先が攻撃者の偽サーバーだった場合、認証トークンや個人情報をそのまま送信してしまい、盗聴や改ざんのリスクがあります。</li></ul><p></p><h2 id=\"he6164c6bb8\">2. ルート証明書も失効した場合</h2><p>中間証明書の失効だけではプログラム側の情報漏洩を防げないため、今回GoogleやMozillaは「大元のルート証明書ごと削除する」という手段に出ました。</p><ul><li><strong>どうなるか:</strong> OSのリストからルート証明書が削除されると、ブラウザやプログラムは証明書を信用しないのでエラーになり、強制的に通信を遮断するようになります。</li><li><strong>結果:</strong> 情報漏洩リスクは完全に防げます。しかし副作用としてその証明書を使っていた自社のAPIなどはダウンタイムが発生する恐れがあります。</li></ul><p></p><h2 id=\"h0b1bbf2232\">3. 取れる対策</h2><p>上記の通り、ルート証明書がOSから削除されればプログラムの通信も安全に遮断されます。</p><p>しかし、<strong>OSによってこのリストが更新されるタイミングが異なります。</strong></p><ul><li><strong>一般的なOS(Windows/macOS/iOS等):</strong> Trust Storeをバックグラウンドで自動更新する仕組みがあるため、手動のOSアップデート等は不要で、勝手に安全な状態になります。</li><li><strong>サーバーOS(Linux / Dockerコンテナ等):</strong> 以下のように自分で証明書リスト（<code>ca-certificates</code>）を明示的に更新しない限り、古いルート証明書を信じ続けてしまいます。</li></ul><p><strong>Ubuntu / Debian系の例</strong></p><pre><code>sudo apt-get update\nsudo apt-get install --only-upgrade ca-certificates\n</code></pre><p><strong>RHEL / AlmaLinux / Amazon Linux系の例</strong></p><pre><code>sudo yum update ca-certificates\n# または\nsudo dnf update ca-certificates\n</code></pre><p><strong>Dockerコンテナの場合</strong></p><p>Dockerfileの中に更新コマンドを組み込んでおき、さらにキャッシュを無効化してリビルドする必要があります。</p><div data-filename=\"Dockerfile\"><pre><code>FROM ubuntu:22.04\nRUN apt-get update &amp;&amp; apt-get install -y --only-upgrade ca-certificates\n</code></pre></div><p>ビルドコマンド</p><pre><code>$ docker build --no-cache -t my-app:latest .</code></pre><p></p><h1 id=\"h9be0c3393d\">おわりに</h1><p>今回は、インドの認証局eMudhraの中間証明書インシデントから、「秘密鍵」の強度の重要とそれが破られたときにシステム全体へどのような影響を及ぼすかを整理しました。</p><p>対応としては、サーバーOSやDockerコンテナ内の証明書リスト（<code>ca-certificates</code> パッケージなど）を常に最新にアップデートし続けることが大事だと思います。</p>",
+	"excerpt": "2026年10月、インドの認証局eMudhraの中間証明書の秘密鍵が「4」などの極端に小さな値で生成され、数ミリ秒で復元可能な状態になっていたことが発覚しました。本記事では、どのように鍵が再現されたのか、中間CAの危殆化がバックエンドプログラムに及ぼす影響と、私たちがLinuxやDockerで対応すべきことを解説します。",
+	"category": {
+		"id": "tolne89kt",
+		"createdAt": "2026-09-27T05:45:21.291Z",
+		"updatedAt": "2026-09-27T05:45:21.291Z",
+		"publishedAt": "2026-09-27T05:45:21.291Z",
+		"revisedAt": "2026-09-27T05:45:21.291Z",
+		"name": "テクノロジー"
+	},
+	"tags": [
+		{
+			"id": "psrjgp9jz",
+			"createdAt": "2026-10-12T23:05:27.199Z",
+			"updatedAt": "2026-10-12T23:05:27.199Z",
+			"publishedAt": "2026-10-12T23:05:27.199Z",
+			"revisedAt": "2026-10-12T23:05:27.199Z",
+			"name": "仕組み解説"
+		},
+		{
+			"id": "o0dhisrrb",
+			"createdAt": "2026-09-27T14:33:25.456Z",
+			"updatedAt": "2026-09-27T14:33:25.456Z",
+			"publishedAt": "2026-09-27T14:33:25.456Z",
+			"revisedAt": "2026-09-27T14:33:25.456Z",
+			"name": "セキュリティ"
+		},
+		{
+			"id": "mc253_-gdrv7",
+			"createdAt": "2026-10-11T11:41:03.647Z",
+			"updatedAt": "2026-10-11T11:41:03.647Z",
+			"publishedAt": "2026-10-11T11:41:03.647Z",
+			"revisedAt": "2026-10-11T11:41:03.647Z",
+			"name": "SSL/TLS"
+		}
+	]
+}

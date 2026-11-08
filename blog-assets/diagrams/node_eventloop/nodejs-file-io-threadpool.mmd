@@ -1,0 +1,21 @@
+---
+config:
+  theme: base
+---
+sequenceDiagram
+    autonumber
+    participant Main as メインスレッド<br/>（イベントループ）
+    participant Pool as libuv<br/>スレッドプール
+    participant OS as OS
+
+    Note over Main: ./sample.txt読み込み<br/>await fs.readFile('./sample.txt', 'utf8')
+    Main->>Pool: ファイル I/O を委譲
+    activate Pool
+    Note over Main: I/O の完了を待たず、<br/>別タスクを実行できる
+    Pool->>OS: ファイルを読み込む
+    activate OS
+    OS-->>Pool: 読み込み完了
+    deactivate OS
+    Pool-->>Main: 完了通知をイベントループへ渡す
+    deactivate Pool
+    Note over Main: イベントループが通知を処理し、<br/>コールバック / Promise の後続処理を実行

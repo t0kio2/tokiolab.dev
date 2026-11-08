@@ -1,0 +1,29 @@
+---
+config:
+  theme: base
+---
+sequenceDiagram
+    autonumber
+    participant A as リクエストA
+    participant B as リクエストB
+    participant Main as メインスレッド<br/>（イベントループ）
+    participant Pool as libuv<br/>スレッドプール
+    participant OS as OS
+
+    A->>Main: HTTP リクエストを受信
+    Main->>Pool: A のファイル I/O を委譲
+    activate Pool
+    Pool->>OS: A のファイルを読み込む
+    activate OS
+    Note over Main,OS: A の I/O 完了を待っている間も、<br/>メインスレッドはイベントループを回し続ける
+
+    B->>Main: HTTP リクエストを受信
+    Note over Main: A を待たずに B の処理へ進む
+    Main-->>B: B のレスポンスを返す
+
+    OS-->>Pool: A のファイル読み込み完了
+    deactivate OS
+    Pool-->>Main: A の完了通知をイベントループへ渡す
+    deactivate Pool
+    Note over Main: A のファイル読み込み後の処理を実行
+    Main-->>A: A のレスポンスを返す

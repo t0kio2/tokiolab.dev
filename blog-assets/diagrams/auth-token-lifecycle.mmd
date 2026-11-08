@@ -1,0 +1,37 @@
+---
+config:
+  theme: base
+---
+sequenceDiagram
+    autonumber
+    participant App as アプリ
+    participant API as APIサーバー
+    participant Auth as 認証サーバー
+
+    App->>Auth: ログイン情報を送信
+    Auth-->>App: 200 OK（トークン2種）
+    Note over App: アクセストークン<br/>リフレッシュトークン<br/>を安全に保存
+
+    loop 通常利用
+        App->>API: APIリクエスト（アクセストークン付き）
+        alt アクセストークンが有効
+            API-->>App: 200 OK
+        else アクセストークンが期限切れ
+            API-->>App: 401 Unauthorized
+            App->>Auth: リフレッシュトークンで更新要求
+            alt リフレッシュトークンが有効
+                Auth-->>App: 200 OK（新しいアクセストークン）
+                App->>API: 元のリクエストを再送（新しいトークン付き）
+                API-->>App: 200 OK
+            else リフレッシュトークンも失効
+                Auth-->>App: 401 Unauthorized
+                Note over App: トークンを破棄し、<br/>ログイン画面へ誘導
+            end
+        end
+    end
+
+    opt ユーザーがログアウト
+        App->>Auth: ログアウト要求（トークン破棄）
+        Auth-->>App: 204 No Content
+        Note over App: 保存済みのトークンを削除<br/>次回利用時に再ログイン
+    end

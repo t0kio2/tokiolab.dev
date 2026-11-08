@@ -8,6 +8,22 @@
 		"name": "AWS"
 	},
 	{
+		"id": "21y6mvzllp",
+		"createdAt": "2026-10-17T03:09:48.376Z",
+		"updatedAt": "2026-10-17T03:09:48.376Z",
+		"publishedAt": "2026-10-17T03:09:48.376Z",
+		"revisedAt": "2026-10-17T03:09:48.376Z",
+		"name": "JavaScript"
+	},
+	{
+		"id": "m3yctbz8p",
+		"createdAt": "2026-10-12T08:15:08.127Z",
+		"updatedAt": "2026-10-12T08:15:08.127Z",
+		"publishedAt": "2026-10-12T08:15:08.127Z",
+		"revisedAt": "2026-10-12T08:15:08.127Z",
+		"name": "Node.js"
+	},
+	{
 		"id": "mc253_-gdrv7",
 		"createdAt": "2026-10-11T11:41:03.647Z",
 		"updatedAt": "2026-10-11T11:41:03.647Z",
@@ -30,6 +46,22 @@
 		"publishedAt": "2026-09-27T14:33:25.456Z",
 		"revisedAt": "2026-09-27T14:33:25.456Z",
 		"name": "セキュリティ"
+	},
+	{
+		"id": "psrjgp9jz",
+		"createdAt": "2026-10-12T23:05:27.199Z",
+		"updatedAt": "2026-10-12T23:05:27.199Z",
+		"publishedAt": "2026-10-12T23:05:27.199Z",
+		"revisedAt": "2026-10-12T23:05:27.199Z",
+		"name": "仕組み解説"
+	},
+	{
+		"id": "y6tl2gdk5",
+		"createdAt": "2026-11-06T05:39:15.247Z",
+		"updatedAt": "2026-11-06T05:39:15.247Z",
+		"publishedAt": "2026-11-06T05:39:15.247Z",
+		"revisedAt": "2026-11-06T05:39:15.247Z",
+		"name": "認証"
 	},
 	{
 		"id": "uk9rk9hrdv",
