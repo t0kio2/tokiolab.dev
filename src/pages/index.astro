@@ -1,7 +1,7 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import { getContentPreview, getPosts } from '../lib/microcms';
-const posts = await getPosts();
+import { getContentPreview, getPostCount, getPosts } from '../lib/microcms';
+const [posts, postCount] = await Promise.all([getPosts(), getPostCount()]);
 const formatDate = (value: string) =>
 	new Intl.DateTimeFormat('ja-JP', {
 		year: 'numeric',
@@ -20,6 +20,12 @@ const formatDate = (value: string) =>
 				ウェブとプロダクトについて、つくりながら考えたことを記録しています。
 			</p>
 		</header>
+		<div class="post-list-header">
+			<h2>Articles</h2>
+			<p class="post-count">
+				<strong>{postCount}</strong> posts
+			</p>
+		</div>
 		<ul class="post-list">
 			{posts.map((post) => (
 				<li class="post-item">
@@ -81,32 +87,56 @@ const formatDate = (value: string) =>
 	}
 	.site-intro p {
 		max-width: 360px;
-		margin: 16px auto 0;
+		margin: var(--space-4) auto 0;
 		color: var(--color-muted);
-		font-size: 0.9rem;
+		font-size: var(--font-size-small);
+	}
+	.post-list-header {
+		display: flex;
+		align-items: baseline;
+		justify-content: space-between;
+		padding-bottom: var(--space-3);
+		border-bottom: 1px solid var(--color-line);
+	}
+	.post-list-header h2,
+	.post-count {
+		margin: 0;
+		font-size: var(--font-size-meta);
+	}
+	.post-list-header h2 {
+		font-weight: 700;
+		letter-spacing: 0.12em;
+		text-transform: uppercase;
+	}
+	.post-count {
+		color: var(--color-muted);
+	}
+	.post-count strong {
+		color: var(--color-accent);
+		font-size: 1rem;
+		font-weight: 700;
 	}
 	.post-list {
 		margin: 0;
 		padding: 0;
 		list-style: none;
-		border-top: 1px solid var(--color-ink);
 	}
 	.post-item {
-		padding: 24px 0;
+		padding: var(--space-5) 0;
 		border-bottom: 1px solid var(--color-line);
 	}
 	.post-meta {
 		display: flex;
 		flex-wrap: wrap;
-		gap: 4px 12px;
-		margin: 0 0 7px;
+		gap: var(--space-1) var(--space-3);
+		margin: 0 0 var(--space-2);
 		color: var(--color-muted);
-		font-size: 0.78rem;
+		font-size: var(--font-size-meta);
 	}
 	.updated-at {
 		display: inline-flex;
 		align-items: center;
-		gap: 3px;
+		gap: var(--space-1);
 	}
 	.updated-at svg {
 		width: 0.9em;
@@ -136,9 +166,9 @@ const formatDate = (value: string) =>
 		color: var(--color-accent);
 	}
 	.description {
-		margin: 8px 0 0;
+		margin: var(--space-2) 0 0;
 		color: var(--color-muted);
-		font-size: 0.9rem;
+		font-size: var(--font-size-small);
 		display: -webkit-box;
 		-webkit-box-orient: vertical;
 		-webkit-line-clamp: 2;
@@ -147,11 +177,11 @@ const formatDate = (value: string) =>
 	.tag-list {
 		display: flex;
 		flex-wrap: wrap;
-		gap: 6px 12px;
-		margin: 12px 0 0;
+		gap: var(--space-2) var(--space-3);
+		margin: var(--space-3) 0 0;
 		padding: 0;
 		color: var(--color-muted);
-		font-size: 0.78rem;
+		font-size: var(--font-size-meta);
 		list-style: none;
 	}
 	.tag-list a {
