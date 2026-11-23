@@ -1,0 +1,60 @@
+---
+config:
+  theme: base
+---
+sequenceDiagram
+    actor User as リソースオーナー<br/>（ユーザー）
+    participant App as スマホアプリ<br/>（Public Client）
+    participant Browser as LINE認証チャネル<br/>（LINEアプリ / Webブラウザ）
+    participant Backend as 自社バックエンド
+    participant LINE as 認可サーバー・<br/>IDプロバイダ<br/>（LINE）
+    participant LINEAPI as Resource Server<br/>（LINE API）
+
+    Note over User,LINEAPI: LINE Login v2.1<br/>OAuth 2.0 Authorization Code + OIDC + PKCE
+
+    User->>App: LINEログインを選択
+    rect rgb(235, 245, 255)
+    Note over App,LINE: 【PKCE: code_challengeの生成・送信】
+    App->>App: state / nonce / code_verifierを生成
+    App->>App: code_challenge = BASE64URL(SHA-256(code_verifier))
+    Note right of App: state / nonce / code_verifierは<br/>安全なストレージに保存<br/>client_secretはアプリに埋め込まない
+    App->>Browser: LINE認証を開始
+    Note right of App: redirect_uri = myapp://oauth/callback<br/>認可後にアプリへ戻るための受付先
+
+    Browser->>LINE: GET /oauth2/v2.1/authorize を実行<br/>response_type=code&client_id=...<br/>redirect_uri=myapp://oauth/callback<br/>state=...&nonce=...&scope=profile openid<br/>code_challenge=...&code_challenge_method=S256
+    end
+    LINE-->>Browser: ログイン・同意画面
+    User->>Browser: 認証情報を入力・同意
+    Browser->>LINE: 認証・同意を送信
+    LINE-->>Browser: redirect_uriへ302リダイレクト<br/>myapp://oauth/callback?code=...&state=...
+    Browser->>App: code + state
+
+    App->>App: 受信stateと保存stateを比較
+    alt stateが一致しない
+        App-->>User: ログインを中止
+    else stateが一致
+        rect rgb(235, 245, 255)
+        Note over App,LINE: 【PKCE: code_verifierの検証】
+        App->>LINE: POST /oauth2/v2.1/token
+        Note right of App: code / redirect_uri<br/>client_id / code_verifier<br/>（client_secretは送信しない）
+        LINE->>LINE: BASE64URL(SHA-256(code_verifier))を計算
+        LINE->>LINE: 計算結果と保存済みcode_challengeを比較
+        LINE-->>App: access_token + id_token + refresh_token
+        end
+
+        App->>Backend: LINEログイン結果を送信
+        Note right of App: id_token / access_token / nonce
+        Backend->>LINE: POST /oauth2/v2.1/verify
+        Note right of Backend: id_token / client_id<br/>期待するnonce
+        LINE-->>Backend: 検証済みOIDC claims
+        Backend->>Backend: claims.nonceと保存済みnonceを比較
+        alt nonceが一致しない
+            Backend-->>App: ログインを拒否
+        else nonceが一致
+            Backend->>LINEAPI: GET /v2/profile
+            Note right of Backend: Authorization: Bearer access_token<br/>profile scope
+            LINEAPI-->>Backend: userId / displayName / pictureUrl
+            Backend-->>App: アプリ用セッションを発行
+            Note over App,Backend: LINEのトークンをアプリ用セッションへ交換
+        end
+    end

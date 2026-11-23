@@ -1,0 +1,25 @@
+---
+config:
+  theme: base
+---
+sequenceDiagram
+    actor Victim as 被害者
+    actor Attacker as 攻撃者
+    participant App as スマホアプリ
+    participant Backend as 自社バックエンド<br/>（nonce未検証）
+    participant LINE as 認可サーバー・<br/>IDプロバイダ<br/>（LINE）
+
+    Note over Victim,LINE: IDトークンリプレイ<br/>nonceを検証しない場合
+
+    Victim->>App: 自アプリでLINEログインを開始
+    App->>LINE: 認可コードをトークンへ交換
+    LINE-->>App: 未失効のid_token（nonce=N1）
+    App-->>Victim: 自アプリへのログイン完了
+    Note over App,Attacker: id_tokenが端末ログや<br/>安全でない保存先から漏えいしたと仮定
+    Attacker->>Backend: 過去のid_tokenを再送
+    Backend->>LINE: /oauth2/v2.1/verify（nonceなし）
+    Note right of Backend: id_token + client_id<br/>nonceを指定しない
+    LINE-->>Backend: 検証済みclaims（nonce=N1）
+    Backend->>Backend: nonceを比較せずセッションを作成
+    Backend-->>Attacker: 被害者としてログイン成功
+    Note over Backend,Attacker: 今回のログインで生成したnonceと<br/>IDトークンのnonceを結び付けていない

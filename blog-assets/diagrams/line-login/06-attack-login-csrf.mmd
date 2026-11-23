@@ -1,0 +1,22 @@
+---
+config:
+  theme: base
+---
+sequenceDiagram
+    actor Victim as 被害者
+    actor Attacker as 攻撃者
+    participant App as スマホアプリ<br/>（state未検証）
+    participant LINE as 認可サーバー・<br/>IDプロバイダ<br/>（LINE）
+
+    Note over Victim,LINE: ログインCSRF<br/>stateを検証しない場合
+
+    Attacker->>LINE: 攻撃者自身の認可を開始
+    LINE-->>Attacker: code + state
+    Attacker->>Victim: callback URLを送りつける
+    Note right of Attacker: code=attacker-code<br/>state=attacker-state
+    Victim->>App: callback URLを開く
+    App->>App: stateを検証せず処理を続行
+    App->>LINE: codeをトークンへ交換
+    LINE-->>App: 攻撃者のaccess_token + id_token
+    App-->>Victim: 攻撃者アカウントでログイン完了
+    Note over App,Victim: 認証要求とcallbackを結び付けていない<br/>被害者の操作やデータが攻撃者アカウントに紐付く

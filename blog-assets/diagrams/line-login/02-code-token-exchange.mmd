@@ -1,0 +1,27 @@
+---
+config:
+  theme: base
+---
+sequenceDiagram
+    actor User as ユーザー
+    participant App as スマホアプリ<br/>（自アプリ）
+    participant Browser as LINE認証チャネル<br/>（LINEアプリ / Webブラウザ）
+    participant LINE as 認可サーバー・<br/>IDプロバイダ<br/>（LINE）
+
+    Note over User,LINE: 2. 認可コードの受け取りとトークン交換
+
+    LINE-->>Browser: ログイン・同意画面を表示
+    User->>Browser: LINEアカウントで認証・同意
+    Browser->>LINE: 認証・同意を送信
+    LINE-->>Browser: redirect_uriへ302リダイレクト<br/>myapp://oauth/callback?code=...&state=...
+      Browser->>App: myapp://oauth/callback?code=...&state=...
+    Note over Browser,App: redirect_uriを通じて<br/>認可コード(code)とstateをアプリへ返す
+    App->>App: stateを検証
+    rect rgb(235, 245, 255)
+    Note over App,LINE: 【PKCE: code_verifierの検証】
+      App->>LINE: POST /oauth2/v2.1/token<br/>（トークン発行API）
+    Note right of App: code / redirect_uri<br/>code_verifier
+    LINE->>LINE: BASE64URL(SHA-256(code_verifier))を計算
+    LINE->>LINE: 計算結果と保存済みcode_challengeを比較
+    LINE-->>App: access_token / id_token / refresh_token
+    end
