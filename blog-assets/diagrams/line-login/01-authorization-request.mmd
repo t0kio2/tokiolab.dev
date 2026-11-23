@@ -1,0 +1,22 @@
+---
+config:
+  theme: base
+---
+sequenceDiagram
+    actor User as ユーザー
+    participant App as スマホアプリ<br/>（自アプリ）
+    participant Browser as LINE認証チャネル<br/>（LINEアプリ / Webブラウザ）
+    participant LINE as 認可サーバー・<br/>IDプロバイダ<br/>（LINE）
+
+    Note over User,LINE: 1. 認可リクエストの送信
+
+    User->>App: 「LINEログイン」をタップ
+    rect rgb(235, 245, 255)
+    Note over App,LINE: 【PKCE: code_challengeの生成・送信】
+    App->>App: 認証リクエストを準備
+    Note right of App: state / nonce / code_verifierを生成<br/>code_verifierからcode_challengeを生成
+    Note right of App: redirect_uri = myapp://oauth/callback<br/>認可後にアプリへ戻るための受付先
+    App->>Browser: LINE認証を開始
+      Browser->>LINE: GET /oauth2/v2.1/authorize を実行<br/>redirect_uri=myapp://oauth/callback<br/>state=...&nonce=...&code_challenge=...<br/>code_challenge_method=S256
+    end
+    LINE-->>Browser: 認可同意画面を表示

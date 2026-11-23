@@ -1,0 +1,19 @@
+---
+config:
+  theme: base
+---
+sequenceDiagram
+    participant App as スマホアプリ<br/>（自アプリ）
+    participant Backend as 自社バックエンド
+    participant LINE as 認可サーバー・<br/>IDプロバイダ<br/>（LINE）
+
+    Note over App,LINE: 3. IDトークンの検証と身元確認
+
+    App->>Backend: IDトークン等を送信
+    Note right of App: id_token / access_token / nonce
+      Backend->>LINE: POST /oauth2/v2.1/verify<br/>（IDトークン検証API）
+      Note right of Backend: id_token / client_id
+    LINE-->>Backend: 検証済みOIDC claims
+      Backend->>Backend: 保存済みnonceと<br/>claims.nonceを比較
+    Backend->>Backend: subで自アプリのユーザーを照合
+    Note over Backend: 既存ユーザーを取得<br/>または新規ユーザーを作成

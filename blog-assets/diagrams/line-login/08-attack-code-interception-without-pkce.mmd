@@ -1,0 +1,22 @@
+---
+config:
+  theme: base
+---
+sequenceDiagram
+    actor User as ユーザー
+    actor Attacker as 攻撃者
+    participant App as スマホアプリ<br/>（PKCEなし）
+    participant Browser as LINE認証チャネル
+    participant LINE as 認可サーバー・<br/>IDプロバイダ<br/>（LINE）
+
+    Note over User,LINE: 認可コード横取り<br/>PKCEを使わない場合
+
+    User->>App: LINEログインを開始
+    App->>Browser: 認可URLを開く（code_challengeなし）
+    Browser->>LINE: 認可リクエスト
+    User->>LINE: 認証・同意
+    LINE-->>Browser: redirect_uriへ認可コード
+    Browser-->>Attacker: codeを横取り
+    Attacker->>LINE: /oauth2/v2.1/token（codeのみ）
+    LINE-->>Attacker: access_token + id_token
+    Note over Attacker,LINE: code_verifierが不要なため<br/>横取りしたcodeを利用できる
